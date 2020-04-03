@@ -2,7 +2,12 @@
 public class Test_ATrigger {
     // TODO: "isFieldChanged" method returns true if field is changed on update operation
 
-    private static final Account TEST_RECORD = new Account(Name = 'Test_ATrigger');
+    private enum TriggerState {
+        T_INSERT,
+        T_UPDATE,
+        T_DELETE,
+        T_UNDELETE
+    }
 
     private static final String INITIALIZE = 'initialize ';
     private static final String PREVALIDATE = 'preValidate ';
@@ -14,6 +19,33 @@ public class Test_ATrigger {
     private static final String VALIDATE_BEFORE_DELETE = 'validateBeforeDelete ';
     private static final String AFTER_DELETE = 'afterDelete ';
     private static final String AFTER_UNDELETE = 'afterUndelete ';
+
+    private static final Map<TriggerState, List<String>> SEQUENCE_MAP = new Map<TriggerState, List<String>> {
+        TriggerState.T_INSERT => new List<String> {
+            INITIALIZE,
+            PREVALIDATE,
+            CALCULATE,
+            VALIDATE,
+            AFTER_INSERT,
+            AFTER_UPSERT
+        },
+        TriggerState.T_UPDATE => new List<String> {
+            PREVALIDATE,
+            CALCULATE,
+            VALIDATE,
+            AFTER_UPDATE,
+            AFTER_UPSERT
+        },
+        TriggerState.T_DELETE => new List<String> {
+            VALIDATE_BEFORE_DELETE,
+            AFTER_DELETE
+        },
+        TriggerState.T_UNDELETE => new List<String> {
+            AFTER_UNDELETE
+        }
+    };
+
+    private static final Account TEST_RECORD = new Account(Name = 'Test_ATrigger');
 
     public static String triggerLog = '';
 
@@ -59,68 +91,28 @@ public class Test_ATrigger {
         }
     }
 
-    @isTest
-    private static void testInsertSequenceInTrigger() {
-        String logToTest = String.join(
-            new List<String> {
-                INITIALIZE,
-                PREVALIDATE,
-                CALCULATE,
-                VALIDATE,
-                AFTER_INSERT,
-                AFTER_UPSERT
-            },
-            ''
-        );
-        insert TEST_RECORD;
-        System.assertEquals(logToTest, triggerLog, 'Sequence is wrong for Insert trigger.');
+    private static String getSequence(TriggerState state) {
+        return String.join(SEQUENCE_MAP.get(state), '');
+    }
+
+    private static void assertSequence(TriggerState state) {
+        String logToTest = getSequence(state);
+        System.assertEquals(logToTest, triggerLog, 'Sequence is wrong for ' + state.name() + ' trigger.');
+        triggerLog = '';
     }
 
     @isTest
-    private static void testUpdateSequenceInTrigger() {
-        String logToTest = String.join(
-            new List<String> {
-                PREVALIDATE,
-                CALCULATE,
-                VALIDATE,
-                AFTER_UPDATE,
-                AFTER_UPSERT
-            },
-            ''
-        );
+    private static void testSequenceInTrigger() {
         insert TEST_RECORD;
-        triggerLog = '';
+        assertSequence(TriggerState.T_INSERT);
+        
         update TEST_RECORD;
-        System.assertEquals(logToTest, triggerLog, 'Sequence is wrong for Update trigger.');
-    }
-
-    @isTest
-    private static void testDeleteSequenceInTrigger() {
-        String logToTest = String.join(
-            new List<String> {
-                VALIDATE_BEFORE_DELETE,
-                AFTER_DELETE
-            },
-            ''
-        );
-        insert TEST_RECORD;
-        triggerLog = '';
+        assertSequence(TriggerState.T_UPDATE);
+        
         delete TEST_RECORD;
-        System.assertEquals(logToTest, triggerLog, 'Sequence is wrong for Delete trigger.');
-    }
-
-    @isTest
-    private static void testUndeleteSequenceInTrigger() {
-        String logToTest = String.join(
-            new List<String> {
-                AFTER_UNDELETE
-            },
-            ''
-        );
-        insert TEST_RECORD;
-        delete TEST_RECORD;
-        triggerLog = '';
+        assertSequence(TriggerState.T_DELETE);
+        
         undelete TEST_RECORD;
-        System.assertEquals(logToTest, triggerLog, 'Sequence is wrong for Undelete trigger.');
+        assertSequence(TriggerState.T_UNDELETE);
     }
 }
