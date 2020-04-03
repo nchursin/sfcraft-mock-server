@@ -121,6 +121,6 @@ public class Test_ATrigger {
         delete TEST_RECORD;
         triggerLog = '';
         undelete TEST_RECORD;
-        System.assertEquals(logToTest, triggerLog, 'Sequence is wrong for Delete trigger.');
+        System.assertEquals(logToTest, triggerLog, 'Sequence is wrong for Undelete trigger.');
     }
 }
