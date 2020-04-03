@@ -45,12 +45,14 @@ public class Test_ATrigger {
         }
     };
 
-    private static final Account TEST_RECORD = new Account(Name = 'Test_ATrigger');
+    private static final sObject TEST_RECORD = new Account(Name = 'Test_ATrigger');
 
-    public static String triggerLog = '';
+    private static String triggerLog = '';
+    private static List<sObject> testTriggerRecords;
 
     public class TestTriggerHandler extends ATrigger {
         protected override void initialize(List<sObject> records) {
+            testTriggerRecords = records;
             triggerLog += INITIALIZE;
         }
 
@@ -83,6 +85,7 @@ public class Test_ATrigger {
         }
 
         protected override void afterDelete(List<sObject> records) {
+            testTriggerRecords = records;
             triggerLog += AFTER_DELETE;
         }
 
@@ -114,5 +117,14 @@ public class Test_ATrigger {
         
         undelete TEST_RECORD;
         assertSequence(TriggerState.T_UNDELETE);
+    }
+
+    @isTest
+    private static void testTriggerRecords() {
+        insert TEST_RECORD;
+        System.assertEquals(TEST_RECORD.Id, testTriggerRecords[0].Id, 'Trigger records first element id is not equal to expected');
+        testTriggerRecords = null;
+        delete TEST_RECORD;
+        System.assertEquals(TEST_RECORD.Id, testTriggerRecords[0].Id, 'Trigger records first element id is not equal to expected');
     }
 }
