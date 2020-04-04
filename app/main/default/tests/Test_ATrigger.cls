@@ -49,11 +49,13 @@ public class Test_ATrigger {
 
     private static final sObjectType TEST_SOBJECT_TYPE = TEST_RECORD.getSObjectType();
     private static final Schema.SObjectField TEST_SOBJECT_FIELD = TEST_SOBJECT_TYPE.getDescribe().fields.getMap().get(TEST_FIELD_NAME);
+    private static final Object TEST_FIELD_OLD_VALUE = TEST_RECORD.get(TEST_FIELD_NAME);
 
     private static String triggerLog = '';
     private static List<sObject> testTriggerRecords;
     private static Boolean isFieldChangedResult = null;
     private static Boolean isFieldChangedToResult = null;
+    private static Boolean isFieldChangedFromResult = null;
 
     public class TestTriggerHandler extends ATrigger {
         protected override void initialize(List<sObject> records) {
@@ -65,6 +67,7 @@ public class Test_ATrigger {
             triggerLog += CALCULATE;
             isFieldChangedResult = isFieldChanged(records[0], TEST_SOBJECT_FIELD);
             isFieldChangedToResult = isFieldChangedTo(records[0], TEST_SOBJECT_FIELD, TEST_FIELD_CHANGED_VALUE);
+            isFieldChangedFromResult = isFieldChangedFrom(records[0], TEST_SOBJECT_FIELD, TEST_FIELD_OLD_VALUE);
         }
 
         protected override void validate(List<sObject> records) {
@@ -126,9 +129,20 @@ public class Test_ATrigger {
         String message = 'isFieldChangedTo should return ' + expected + ' in ' + state.name() + ' context';
         String isFieldChangedStr = expected ? ' ' : ' not ';
         message += ' if field is' + isFieldChangedStr + 'changed';
-        message += ' and new value is equal to ' + TEST_FIELD_CHANGED_VALUE;
+        message += expected ? ' and' : ' or';
+        message += ' new value is' + isFieldChangedStr + 'equal to ' + TEST_FIELD_CHANGED_VALUE;
         System.assertEquals(expected, isFieldChangedToResult, message);
-        isFieldChangedResult = null;
+        isFieldChangedToResult = null;
+    }
+
+    private static void assertIsFieldChangedFromResult(Boolean expected, TriggerState state) {
+        String message = 'isFieldChangedFrom should return ' + expected + ' in ' + state.name() + ' context';
+        String isFieldChangedStr = expected ? ' ' : ' not ';
+        message += ' if field is' + isFieldChangedStr + 'changed';
+        message += expected ? ' and' : ' or';
+        message += ' old value was' + isFieldChangedStr + 'equal to ' + TEST_FIELD_OLD_VALUE;
+        System.assertEquals(expected, isFieldChangedFromResult, message);
+        isFieldChangedFromResult = null;
     }
 
     @isTest
@@ -174,7 +188,6 @@ public class Test_ATrigger {
 
     @isTest
     private static void testIsFieldChangedTo() {
-        // TODO: "isFieldChangedTo" method returns true if field value is equal to value passed in insert context
         insert TEST_RECORD;
         assertIsChangedToResult(false, TriggerState.T_INSERT);
 
@@ -182,5 +195,15 @@ public class Test_ATrigger {
         cloned.put(TEST_FIELD_NAME, TEST_FIELD_CHANGED_VALUE);
         insert cloned;
         assertIsChangedToResult(true, TriggerState.T_INSERT);
+    }
+
+    @isTest
+    private static void testIsFieldChangedFrom() {
+        insert TEST_RECORD;
+        assertIsFieldChangedFromResult(false, TriggerState.T_INSERT);
+
+        TEST_RECORD.put(TEST_FIELD_NAME, TEST_FIELD_CHANGED_VALUE);
+        update TEST_RECORD;
+        assertIsChangedResult(true, TriggerState.T_UPDATE);
     }
 }

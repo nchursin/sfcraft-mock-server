@@ -88,4 +88,14 @@ public abstract inherited sharing class ATrigger {
         Object newValue = record.get(field);
         return isFieldChanged(record, field) && checkValue.equals(newValue);
     }
+    
+    protected Boolean isFieldChangedFrom(sObject record, Schema.SObjectField field, Object checkValue) {
+        if (Trigger.isInsert) {
+            // for insert trigger this means changing value from null
+            return null == checkValue;
+        }
+        SObject oldRecord = oldMap.get(record.Id);
+        Object oldValue = oldRecord.get(field);
+        return isFieldChanged(record, field) && checkValue.equals(oldValue);
+    }
 }
