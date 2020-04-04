@@ -13,7 +13,11 @@ public abstract inherited sharing class ATrigger {
         set;
     }
 
+    private Map<Id, SObject> oldMap;
+
     public void onTrigger() {
+        this.oldMap = Trigger.oldMap;
+        
         switch on Trigger.operationType {
             when BEFORE_INSERT {
                 this.initialize(this.triggerRecords);
@@ -68,4 +72,15 @@ public abstract inherited sharing class ATrigger {
     protected virtual void afterDelete (List<sObject> records) {}
     
     protected virtual void afterUndelete (List<sObject> records) {}
+
+    protected Boolean isFieldChanged(sObject record, Schema.SObjectField field) {
+        if (Trigger.isInsert || Trigger.isUndelete) {
+            return true;
+        } else {
+            SObject oldRecord = oldMap.get(record.Id);
+            Object value = record.get(field);
+            Object oldValue = oldRecord.get(field);
+            return !value.equals(oldValue);
+        }
+    }
 }
