@@ -16,7 +16,7 @@ public abstract inherited sharing class ATrigger {
     private Map<Id, SObject> oldMap;
 
     public void onTrigger() {
-        this.oldMap = Trigger.oldMap;
+        this.oldMap = Trigger.isInsert ? new Map<Id, sObject>() : Trigger.oldMap;
         
         switch on Trigger.operationType {
             when BEFORE_INSERT {
@@ -77,9 +77,8 @@ public abstract inherited sharing class ATrigger {
         if (Trigger.isInsert || Trigger.isUndelete) {
             return true;
         } else {
-            SObject oldRecord = oldMap.get(record.Id);
             Object value = record.get(field);
-            Object oldValue = oldRecord.get(field);
+            Object oldValue = getOldFieldValue(record, field);
             return !value.equals(oldValue);
         }
     }
@@ -94,8 +93,20 @@ public abstract inherited sharing class ATrigger {
             // for insert trigger this means changing value from null
             return null == checkValue;
         }
-        SObject oldRecord = oldMap.get(record.Id);
-        Object oldValue = oldRecord.get(field);
+        Object oldValue = getOldFieldValue(record, field);
         return isFieldChanged(record, field) && checkValue.equals(oldValue);
+    }
+
+    protected sObject getOldRecord(sObject record) {
+        return oldMap.get(record.Id);
+    }
+
+    protected Object getOldFieldValue(sObject record, Schema.SObjectField field) {
+        SObject oldRecord = getOldRecord(record);
+        Object result = null;
+        if (null != oldRecord) {
+            result = oldRecord.get(field);
+        }
+        return result;
     }
 }
