@@ -83,4 +83,9 @@ public abstract inherited sharing class ATrigger {
             return !value.equals(oldValue);
         }
     }
+
+    protected Boolean isFieldChangedTo(sObject record, Schema.SObjectField field, Object checkValue) {
+        Object newValue = record.get(field);
+        return isFieldChanged(record, field) && checkValue.equals(newValue);
+    }
 }

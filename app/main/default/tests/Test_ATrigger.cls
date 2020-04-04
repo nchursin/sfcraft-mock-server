@@ -3,7 +3,6 @@ public class Test_ATrigger {
     private static final sObject TEST_RECORD = new Account(Name = 'Test_ATrigger');
     private static final String TEST_FIELD_NAME = 'Name';
     private static final Object TEST_FIELD_CHANGED_VALUE = 'Changed Name';
-    // TODO: "isFieldChangedTo" method returns true if field is changed on update operation and new field is equal to value passed
 
     private enum TriggerState {
         T_INSERT,
@@ -54,6 +53,7 @@ public class Test_ATrigger {
     private static String triggerLog = '';
     private static List<sObject> testTriggerRecords;
     private static Boolean isFieldChangedResult = null;
+    private static Boolean isFieldChangedToResult = null;
 
     public class TestTriggerHandler extends ATrigger {
         protected override void initialize(List<sObject> records) {
@@ -64,6 +64,7 @@ public class Test_ATrigger {
         protected override void calculate(List<sObject> records) {
             triggerLog += CALCULATE;
             isFieldChangedResult = isFieldChanged(records[0], TEST_SOBJECT_FIELD);
+            isFieldChangedToResult = isFieldChangedTo(records[0], TEST_SOBJECT_FIELD, TEST_FIELD_CHANGED_VALUE);
         }
 
         protected override void validate(List<sObject> records) {
@@ -121,6 +122,15 @@ public class Test_ATrigger {
         isFieldChangedResult = null;
     }
 
+    private static void assertIsChangedToResult(Boolean expected, TriggerState state) {
+        String message = 'isFieldChangedTo should return ' + expected + ' in ' + state.name() + ' context';
+        String isFieldChangedStr = expected ? ' ' : ' not ';
+        message += ' if field is' + isFieldChangedStr + 'changed';
+        message += ' and new value is equal to ' + TEST_FIELD_CHANGED_VALUE;
+        System.assertEquals(expected, isFieldChangedToResult, message);
+        isFieldChangedResult = null;
+    }
+
     @isTest
     private static void testSequenceInTrigger() {
         insert TEST_RECORD;
@@ -160,5 +170,17 @@ public class Test_ATrigger {
         delete TEST_RECORD;
         undelete TEST_RECORD;
         assertIsChangedResult(true, TriggerState.T_UNDELETE);
+    }
+
+    @isTest
+    private static void testIsFieldChangedTo() {
+        // TODO: "isFieldChangedTo" method returns true if field value is equal to value passed in insert context
+        insert TEST_RECORD;
+        assertIsChangedToResult(false, TriggerState.T_INSERT);
+
+        SObject cloned = TEST_RECORD.clone(false);
+        cloned.put(TEST_FIELD_NAME, TEST_FIELD_CHANGED_VALUE);
+        insert cloned;
+        assertIsChangedToResult(true, TriggerState.T_INSERT);
     }
 }
