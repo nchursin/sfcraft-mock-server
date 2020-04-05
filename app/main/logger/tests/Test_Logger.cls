@@ -3,17 +3,6 @@ private class Test_Logger {
     private class TestException extends Exception {}
 
     @isTest
-    private static void testLogException() {
-        Logger logger = new Logger();
-        Exception e = new TestException('Test exception');
-        Log errorLog = logger.log(e);
-        System.assertEquals(Log.TYPE_ERROR, errorLog.getType());
-        System.assertEquals(e.getTypeName(), errorLog.getErrorType());
-        System.assertEquals(e.getMessage(), errorLog.getMessage());
-        System.assertEquals(e.getStackTraceString(), errorLog.getDetails());
-    }
-
-    @isTest
     private static void testInsertLogs() {
         Logger logger = new Logger();
         Exception e = new TestException('Test exception');
@@ -27,9 +16,9 @@ private class Test_Logger {
         ];
         System.assertEquals(1, logs.size());
         Log__c logRecord = logs[0];
-        System.assertEquals(errorLog.getType(), logRecord.Type__c);
-        System.assertEquals(errorLog.getErrorType(), logRecord.ErrorType__c);
-        System.assertEquals(errorLog.getMessage(), logRecord.Message__c);
-        System.assertEquals(errorLog.getDetails(), logRecord.Details__c);
+        System.assertEquals(Log.TYPE_ERROR, logRecord.Type__c);
+        System.assertEquals(e.getTypeName(), logRecord.ErrorType__c);
+        System.assertEquals(e.getMessage(), logRecord.Message__c);
+        System.assertEquals(e.getStackTraceString(), logRecord.Details__c);
     }
 }
