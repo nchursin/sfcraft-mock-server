@@ -1,10 +1,31 @@
 public with sharing class Logger {
+    private String scopeClass;
+    private String scopeMethod;
+
     public Logger() {
 
     }
 
     public Log log(Exception e) {
-        return Log.createLog(e);
+        return Log.createLog(e, this.getScope());
+    }
+
+    public void setClass(String className) {
+        this.scopeClass = className;
+    }
+
+    public void setMethod(String methodName) {
+        this.scopeMethod = methodName;
+    }
+
+    public String getScope() {
+        return String.join(
+            new List<String> {
+                this.scopeClass,
+                this.scopeMethod
+            },
+            '.'
+        );
     }
     
     public void insertLogs(List<Log> logs) {

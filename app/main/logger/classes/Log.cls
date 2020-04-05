@@ -5,6 +5,7 @@ public with sharing class Log {
     private String errorType;
     private String message;
     private String stackTrace;
+    private String scope;
     
     private Log(Exception e) {
         this.type = TYPE_ERROR;
@@ -13,8 +14,10 @@ public with sharing class Log {
         this.stackTrace = e.getStackTraceString();
     }
 
-    public static Log createLog(Exception ex) {
-        return new Log(ex);
+    public static Log createLog(Exception ex, String scope) {
+        Log l = new Log(ex);
+        l.scope = scope;
+        return l;
     }
 
     public String getType() {
@@ -33,12 +36,17 @@ public with sharing class Log {
         return this.stackTrace;
     }
 
+    public String getScope() {
+        return this.scope;
+    }
+
     public Log__c unwrap() {
         return new Log__c(
             Type__c = this.getType(),
             ErrorType__c = this.getErrorType(),
             Message__c = this.getMessage(),
-            Details__c = this.getDetails()
+            Details__c = this.getDetails(),
+            Scope__c = this.getScope()
         );
     }
 }

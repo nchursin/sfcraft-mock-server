@@ -5,11 +5,15 @@ private class Test_Logger {
     @isTest
     private static void testInsertLogs() {
         Logger logger = new Logger();
+        logger.setClass('Test_Logger');
+        logger.setMethod('testInsertLogs');
+        System.assertEquals('Test_Logger.testInsertLogs', logger.getScope(), 'Scope is not what is expected');
         Exception e = new TestException('Test exception');
         Log errorLog = logger.log(e);
         logger.insertLogs(new List<Log>{ errorLog });
         List<Log__c> logs = [
-            SELECT Id, Name, Details__c, Message__c, Type__c, ErrorType__c 
+            SELECT Id, Name, Details__c, Message__c,
+                Type__c, ErrorType__c, Scope__c
             FROM Log__c
             ORDER BY CreatedDate
             DESC LIMIT 1
@@ -20,5 +24,6 @@ private class Test_Logger {
         System.assertEquals(e.getTypeName(), logRecord.ErrorType__c);
         System.assertEquals(e.getMessage(), logRecord.Message__c);
         System.assertEquals(e.getStackTraceString(), logRecord.Details__c);
+        System.assertEquals(logger.getScope(), logRecord.Scope__c);
     }
 }
