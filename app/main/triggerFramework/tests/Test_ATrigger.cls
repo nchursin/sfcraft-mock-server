@@ -206,4 +206,29 @@ public class Test_ATrigger {
         update TEST_RECORD;
         assertIsChangedResult(true, TriggerState.T_UPDATE);
     }
+
+    @isTest
+    private static void testDisableAll() {
+        ATrigger.disableAll();
+        insert TEST_RECORD;
+        System.assertEquals('', triggerLog, 'Sequence should be empty when all triggers disabled');
+        ATrigger.enableAll();
+        triggerLog = '';
+        sObject cloned = TEST_RECORD.clone(false);
+        insert cloned;
+        assertSequence(TriggerState.T_INSERT);
+    }
+
+    @isTest
+    private static void testDisableGranular() {
+        ATrigger.disable(TEST_SOBJECT_TYPE, TriggerOperation.BEFORE_INSERT);
+        insert TEST_RECORD;
+        String logToCheck = AFTER_INSERT + AFTER_UPSERT;
+        System.assertEquals(logToCheck, triggerLog, 'Sequence should be only for after insert');
+        ATrigger.enableAll();
+        triggerLog = '';
+        sObject cloned = TEST_RECORD.clone(false);
+        insert cloned;
+        assertSequence(TriggerState.T_INSERT);
+    }
 }
