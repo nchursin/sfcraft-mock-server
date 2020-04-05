@@ -10,7 +10,7 @@ private class Test_Logger {
         System.assertEquals('Test_Logger.testInsertLogs', logger.getScope(), 'Scope is not what is expected');
         Exception e = new TestException('Test exception');
         Log errorLog = logger.log(e);
-        logger.insertLogs(new List<Log>{ errorLog });
+        logger.insertLogs();
         List<Log__c> logs = [
             SELECT Id, Name, Details__c, Message__c,
                 Type__c, ErrorType__c, Scope__c
