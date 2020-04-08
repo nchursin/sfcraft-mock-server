@@ -1,29 +1,18 @@
-public with sharing class MockAPI implements HttpCalloutMock {
+public with sharing class MockServer implements HttpCalloutMock {
 
-    private Map<String, Resource> endpointResourceMap;
+    private Map<String, APIResource> endpointResourceMap;
     private Integer nextResponseCode;
 
-    public class DefaultResponse implements HttpRespondable{
-        public String status;
-        public DefaultResponse(String status) {
-            this.status = status;
-        }
-
-        public String toResponseBody() {
-            return JSON.serialize(this);
-        }
-    }
-
-    public interface HttpRespondable {
+    public interface HttpMockable {
         String toResponseBody();
     }
 
-    public class Resource {
+    public class APIResource {
         private String endpoint;
 
         private Map<Integer, HttpResponse> responseMap;
 
-        public Resource (String endpoint) {
+        public APIResource (String endpoint) {
             this.endpoint = endpoint;
             this.responseMap = new Map<Integer, HttpResponse>();
         }
@@ -32,7 +21,7 @@ public with sharing class MockAPI implements HttpCalloutMock {
             return this.endpoint;
         }
 
-        public void setResponse(Integer statusCode, HttpRespondable responseBody) {
+        public void setResponse(Integer statusCode, HttpMockable responseBody) {
             HttpResponse response = new HttpResponse();
             response.setBody(responseBody.toResponseBody());
             response.setStatusCode(statusCode);
@@ -44,19 +33,19 @@ public with sharing class MockAPI implements HttpCalloutMock {
         }
     }
 
-    public MockAPI() {
-        this.endpointResourceMap = new Map<String, Resource>();
+    public MockServer() {
+        this.endpointResourceMap = new Map<String, APIResource>();
         this.nextResponseCode = 200;
     }
 
     public HttpResponse respond(HttpRequest req) {
         String endpoint = req.getEndpoint();
-        Resource resource = this.endpointResourceMap.get(endpoint);
+        APIResource resource = this.endpointResourceMap.get(endpoint);
         HttpResponse response = resource.getResponse(this.nextResponseCode);
         return response;
     }
 
-    public void addEndpoint(Resource res) {
+    public void addEndpoint(APIResource res) {
         endpointResourceMap.put(res.getEndpoint(), res);
     }
 

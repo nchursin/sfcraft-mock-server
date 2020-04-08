@@ -3,21 +3,30 @@ private class Test_MockServer {
     private static final String ENDPOINT = 'https://example.com/testEndpoint';
     private static final Integer SUCCESS_CODE = 200;
     private static final Integer FAILURE_CODE = 400;
-    private static final MockAPI.DefaultResponse SUCCESS_BODY = new MockAPI.DefaultResponse('ok');
-    private static final MockAPI.DefaultResponse FAIL_BODY = new MockAPI.DefaultResponse('fail');
+    private static final DefaultResponse SUCCESS_BODY = new DefaultResponse('ok');
+    private static final DefaultResponse FAIL_BODY = new DefaultResponse('fail');
 
     // TODO: Mock.addAPIReource should add resource to resource list
     // TODO: throw error if no resource found for specific status code
-    // TODO: rename MockAPI to MockServer
-    // TODO: rename Resource to APIResource
+
+    public class DefaultResponse implements MockServer.HttpMockable {
+        public String status;
+        public DefaultResponse(String status) {
+            this.status = status;
+        }
+
+        public String toResponseBody() {
+            return JSON.serialize(this);
+        }
+    }
 
     @isTest
     private static void testAddResource() {
-        MockAPI.Resource resource = new MockAPI.Resource(ENDPOINT);
+        MockServer.APIResource resource = new MockServer.APIResource(ENDPOINT);
         resource.setResponse(SUCCESS_CODE, SUCCESS_BODY);
         resource.setResponse(FAILURE_CODE, FAIL_BODY);
         
-        MockAPI mockServer = new MockAPI();
+        MockServer mockServer = new MockServer();
         mockServer.addEndpoint(resource);
 
         HttpRequest req = new HttpRequest();
