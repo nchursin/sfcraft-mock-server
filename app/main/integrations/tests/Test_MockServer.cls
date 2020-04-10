@@ -6,9 +6,9 @@ private class Test_MockServer {
     private static final DefaultResponse SUCCESS_BODY = new DefaultResponse('ok');
     private static final DefaultResponse FAIL_BODY = new DefaultResponse('fail');
 
-    // TODO: Mock.addAPIReource should add resource to resource list
-    // TODO: throw error if no resource found for specific status code
-
+    // TODO: throw error if no endpoint found in MockServer
+    // TODO: remove get params when checking for endpoint
+    
     public class DefaultResponse implements MockServer.HttpMockable {
         public String status;
         public DefaultResponse(String status) {
@@ -26,19 +26,44 @@ private class Test_MockServer {
         resource.setResponse(SUCCESS_CODE, SUCCESS_BODY);
         resource.setResponse(FAILURE_CODE, FAIL_BODY);
         
-        MockServer mockServer = new MockServer();
-        mockServer.addEndpoint(resource);
+        MockServer server = new MockServer();
+        server.addEndpoint(resource);
 
-        HttpRequest req = new HttpRequest();
-        req.setEndpoint(ENDPOINT);
-        HttpResponse response = mockServer.respond(req);
-        System.assertEquals(200, response.getStatusCode());
+        HttpRequest req = getTestRequest();
+        Integer expectedCode = 200;
+        HttpResponse response = server.respond(req);
+        System.assertEquals(expectedCode, response.getStatusCode());
         System.assertEquals(SUCCESS_BODY.toResponseBody(), response.getBody());
 
-        // TODO: after respondNext(statusCode) respond should respond with expected status code
-        mockServer.respondNext(400);
-        response = mockServer.respond(req);
-        System.assertEquals(400, response.getStatusCode());
+        // DONE: after respondNext(statusCode) respond should respond with expected status code
+        expectedCode = 400;
+        server.respondNext(expectedCode);
+        response = server.respond(req);
+        System.assertEquals(expectedCode, response.getStatusCode());
         System.assertEquals(FAIL_BODY.toResponseBody(), response.getBody());
+    }
+
+    @isTest
+    private static void testMockExceptions() {
+        MockServer.APIResource resource = new MockServer.APIResource(ENDPOINT);
+        
+        MockServer server = new MockServer();
+        server.addEndpoint(resource);
+
+        HttpRequest req = getTestRequest();
+        Integer expectedCode = 200;
+        String expectedExceptionMessage = MockServer.createMockException(MockServer.MSG_NO_MOCK_FOR_CODE, ENDPOINT, expectedCode).getMessage();
+        try {
+            server.respond(req);
+            System.assert(false, 'Exception expected');
+        } catch (MockServer.MockException ex) {
+            System.assertEquals(expectedExceptionMessage, ex.getMessage(), 'Another exception message expected');
+        }
+    }
+
+    private static HttpRequest getTestRequest() {
+        HttpRequest req = new HttpRequest();
+        req.setEndpoint(ENDPOINT);
+        return req;
     }
 }

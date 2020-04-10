@@ -1,4 +1,6 @@
 public with sharing class MockServer implements HttpCalloutMock {
+    @TestVisible
+    private static final String MSG_NO_MOCK_FOR_CODE = 'No status code {0} found for the endpoint: {1}';
 
     private Map<String, APIResource> endpointResourceMap;
     private Integer nextResponseCode;
@@ -6,6 +8,8 @@ public with sharing class MockServer implements HttpCalloutMock {
     public interface HttpMockable {
         String toResponseBody();
     }
+
+    public class MockException extends Exception {}
 
     public class APIResource {
         private String endpoint;
@@ -29,6 +33,9 @@ public with sharing class MockServer implements HttpCalloutMock {
         }
 
         public HttpResponse getResponse(Integer statusCode) {
+             if (!this.responseMap.containsKey(statusCode)) {
+                throw createMockException(MSG_NO_MOCK_FOR_CODE, this.endpoint, statusCode);
+            }
             return this.responseMap.get(statusCode);
         }
     }
@@ -51,5 +58,17 @@ public with sharing class MockServer implements HttpCalloutMock {
 
     public void respondNext(Integer statusCode) {
         this.nextResponseCode = statusCode;
+    }
+
+    @TestVisible
+    private static MockServer.MockException createMockException(String message, String endpoint, Integer statusCode) {
+        String expectedMessage = String.format(
+            MockServer.MSG_NO_MOCK_FOR_CODE,
+            new List<String> {
+                String.valueOf(statusCode),
+                ENDPOINT
+            }
+        );
+        return new MockServer.MockException(expectedMessage);
     }
 }
