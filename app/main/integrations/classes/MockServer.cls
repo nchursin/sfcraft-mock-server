@@ -1,6 +1,8 @@
 public with sharing class MockServer implements HttpCalloutMock {
     @TestVisible
-    private static final String MSG_NO_MOCK_FOR_CODE = 'No status code {0} found for the endpoint: {1}';
+    private static final String MSG_NO_MOCK_FOR_CODE = 'No status code {1} found for the endpoint: {0}';
+    @TestVisible
+    private static final String MSG_NO_MOCK_ENDPOINT = 'No API Resource found for endpoint: {0}';
 
     private Map<String, APIResource> endpointResourceMap;
     private Integer nextResponseCode;
@@ -47,9 +49,16 @@ public with sharing class MockServer implements HttpCalloutMock {
 
     public HttpResponse respond(HttpRequest req) {
         String endpoint = req.getEndpoint();
-        APIResource resource = this.endpointResourceMap.get(endpoint);
+        APIResource resource = getAPIResource(endpoint);
         HttpResponse response = resource.getResponse(this.nextResponseCode);
         return response;
+    }
+
+    private APIResource getAPIResource(String endpoint) {
+        if (!this.endpointResourceMap.containsKey(endpoint)) {
+            throw createMockException(MSG_NO_MOCK_ENDPOINT, endpoint);
+        }
+        return this.endpointResourceMap.get(endpoint);
     }
 
     public void addEndpoint(APIResource res) {
@@ -61,12 +70,17 @@ public with sharing class MockServer implements HttpCalloutMock {
     }
 
     @TestVisible
+    private static MockServer.MockException createMockException(String message, String endpoint) {
+        return createMockException(message, endpoint, null);
+    }
+
+    @TestVisible
     private static MockServer.MockException createMockException(String message, String endpoint, Integer statusCode) {
         String expectedMessage = String.format(
-            MockServer.MSG_NO_MOCK_FOR_CODE,
+            message,
             new List<String> {
-                String.valueOf(statusCode),
-                ENDPOINT
+                endpoint,
+                String.valueOf(statusCode)
             }
         );
         return new MockServer.MockException(expectedMessage);
