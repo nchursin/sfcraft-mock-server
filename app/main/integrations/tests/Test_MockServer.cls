@@ -8,8 +8,6 @@ private class Test_MockServer {
     private static final DefaultResponse SUCCESS_BODY = new DefaultResponse('ok');
     private static final DefaultResponse FAIL_BODY = new DefaultResponse('fail');
 
-    // TODO: remove get params when checking for endpoint
-    
     public class DefaultResponse implements MockServer.HttpMockable {
         public String status;
         public DefaultResponse(String status) {
@@ -36,9 +34,8 @@ private class Test_MockServer {
         System.assertEquals(expectedCode, response.getStatusCode());
         System.assertEquals(SUCCESS_BODY.toResponseBody(), response.getBody());
 
-        // DONE: after respondNext(statusCode) respond should respond with expected status code
         expectedCode = 400;
-        server.respondNext(expectedCode);
+        server.setExpectedStatusCode(expectedCode);
         response = server.respond(req);
         System.assertEquals(expectedCode, response.getStatusCode());
         System.assertEquals(FAIL_BODY.toResponseBody(), response.getBody());

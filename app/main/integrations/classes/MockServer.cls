@@ -5,7 +5,7 @@ public with sharing class MockServer implements HttpCalloutMock {
     private static final String MSG_NO_MOCK_ENDPOINT = 'No API Resource found for endpoint: {0}';
 
     private Map<String, APIResource> endpointResourceMap;
-    private Integer nextResponseCode;
+    private Integer expectedStatusCode;
 
     public interface HttpMockable {
         String toResponseBody();
@@ -44,13 +44,13 @@ public with sharing class MockServer implements HttpCalloutMock {
 
     public MockServer() {
         this.endpointResourceMap = new Map<String, APIResource>();
-        this.nextResponseCode = 200;
+        this.expectedStatusCode = 200;
     }
 
     public HttpResponse respond(HttpRequest req) {
         String endpoint = req.getEndpoint();
         APIResource resource = getAPIResource(endpoint);
-        HttpResponse response = resource.getResponse(this.nextResponseCode);
+        HttpResponse response = resource.getResponse(this.expectedStatusCode);
         return response;
     }
 
@@ -66,8 +66,8 @@ public with sharing class MockServer implements HttpCalloutMock {
         endpointResourceMap.put(res.getEndpoint(), res);
     }
 
-    public void respondNext(Integer statusCode) {
-        this.nextResponseCode = statusCode;
+    public void setExpectedStatusCode(Integer statusCode) {
+        this.expectedStatusCode = statusCode;
     }
 
     @TestVisible
