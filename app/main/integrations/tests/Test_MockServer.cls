@@ -8,7 +8,6 @@ private class Test_MockServer {
     private static final DefaultResponse SUCCESS_BODY = new DefaultResponse('ok');
     private static final DefaultResponse FAIL_BODY = new DefaultResponse('fail');
 
-    // TODO: throw error if no endpoint found in MockServer
     // TODO: remove get params when checking for endpoint
     
     public class DefaultResponse implements MockServer.HttpMockable {
@@ -83,7 +82,7 @@ private class Test_MockServer {
 
     private static HttpRequest getTestRequest() {
         HttpRequest req = new HttpRequest();
-        req.setEndpoint(ENDPOINT);
+        req.setEndpoint(ENDPOINT + ENDPOINT_GET_PARAMS);
         return req;
     }
 }
