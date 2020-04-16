@@ -8,6 +8,9 @@ private class Test_MockServer {
     private static final DefaultResponse SUCCESS_BODY = new DefaultResponse('ok');
     private static final DefaultResponse FAIL_BODY = new DefaultResponse('fail');
 
+    // TODO: use HTTP methods
+    // TODO: request assertion
+
     public class DefaultResponse implements MockServer.HttpMockable {
         public String status;
         public DefaultResponse(String status) {
@@ -54,7 +57,7 @@ private class Test_MockServer {
         try {
             server.respond(req);
             System.assert(false, 'Exception expected');
-        } catch (MockServer.MockException ex) {
+        } catch (MockServer.MockServerException ex) {
             System.assertEquals(expectedExceptionMessage, ex.getMessage(), 'Another exception message expected');
         }
     }
@@ -72,7 +75,7 @@ private class Test_MockServer {
         try {
             server.respond(req);
             System.assert(false, 'Exception expected');
-        } catch (MockServer.MockException ex) {
+        } catch (MockServer.MockServerException ex) {
             System.assertEquals(expectedExceptionMessage, ex.getMessage(), 'Another exception message expected');
         }
     }

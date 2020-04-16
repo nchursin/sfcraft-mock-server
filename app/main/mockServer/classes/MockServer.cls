@@ -11,7 +11,7 @@ public with sharing class MockServer implements HttpCalloutMock {
         String toResponseBody();
     }
 
-    public class MockException extends Exception {}
+    public class MockServerException extends Exception {}
 
     public class APIResource {
         private String endpoint;
@@ -71,12 +71,12 @@ public with sharing class MockServer implements HttpCalloutMock {
     }
 
     @TestVisible
-    private static MockServer.MockException createMockException(String message, String endpoint) {
+    private static MockServer.MockServerException createMockException(String message, String endpoint) {
         return createMockException(message, endpoint, null);
     }
 
     @TestVisible
-    private static MockServer.MockException createMockException(String message, String endpoint, Integer statusCode) {
+    private static MockServer.MockServerException createMockException(String message, String endpoint, Integer statusCode) {
         String expectedMessage = String.format(
             message,
             new List<String> {
@@ -84,6 +84,6 @@ public with sharing class MockServer implements HttpCalloutMock {
                 String.valueOf(statusCode)
             }
         );
-        return new MockServer.MockException(expectedMessage);
+        return new MockServer.MockServerException(expectedMessage);
     }
 }
