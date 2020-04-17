@@ -10,7 +10,7 @@ Each part is completely independent and can be extracted to use separately.
 
 ## Trigger framework
 
-[Trigger Framework](../blob/master/app/main/triggerFramework) is located in `app/main/triggerFramework` folder.
+[Trigger Framework](../master/app/main/triggerFramework) is located in `app/main/triggerFramework` folder.
 
 To use the framework extend the ATrigger class. The following methods exists to be overriden:
 
@@ -44,7 +44,7 @@ Finally the trigger framework supports partial trigger disablement.
 
 `TriggerOperation` here is a standard Salesforce `TriggerOperation` enum;
 
-For usage examples take a look at the [ATrigger test class](../blob/master/app/main/triggerFramework/tests/Test_ATrigger.cls).
+For usage examples take a look at the [ATrigger test class](../master/app/main/triggerFramework/tests/Test_ATrigger.cls).
 
 Another word on tests: I used account object for testing, which may not suite you. In order to change this you need:
 
@@ -68,7 +68,7 @@ The mock server framework consists of the following parts:
 1. `MockServer.HttpMockable` interface - implement it by class that represents you server response. E.g. you parse body into a class `ServerResponseBody`. Then you need to implement the `MockServer.HttpMockable` by it to be teach the `MockServer` to respond with it.
 1. `MockServer.MockServerException` - exception that is thrown by `MockServer` in case something went wrong, e.g. misconfiguration.
 
-For usage examples take a look at the [`MockServer` test class](../blob/master/app/main/mockServer/tests/Test_MockServer.cls).
+For usage examples take a look at the [`MockServer` test class](../master/app/main/mockServer/tests/Test_MockServer.cls).
 
 ## Logger
 
