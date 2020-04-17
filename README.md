@@ -44,6 +44,7 @@ Finally the trigger framework supports partial trigger disablement.
 
 `TriggerOperation` here is a standard Salesforce `TriggerOperation` enum;
 
+### Example info
 For usage examples take a look at the [ATrigger test class](../master/app/main/triggerFramework/tests/Test_ATrigger.cls).
 
 Another word on tests: I used account object for testing, which may not suite you. In order to change this you need:
@@ -68,6 +69,7 @@ The mock server framework consists of the following parts:
 1. `MockServer.HttpMockable` interface - implement it by class that represents you server response. E.g. you parse body into a class `ServerResponseBody`. Then you need to implement the `MockServer.HttpMockable` by it to be teach the `MockServer` to respond with it.
 1. `MockServer.MockServerException` - exception that is thrown by `MockServer` in case something went wrong, e.g. misconfiguration.
 
+### Example info
 For usage examples take a look at the [`MockServer` test class](../master/app/main/mockServer/tests/Test_MockServer.cls).
 
 ## Logger
