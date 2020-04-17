@@ -57,94 +57,6 @@ public class Test_ATrigger {
     private static Boolean isFieldChangedToResult = null;
     private static Boolean isFieldChangedFromResult = null;
 
-    public class TestTriggerHandler extends ATrigger {
-        protected override void initialize(List<sObject> records) {
-            testTriggerRecords = records;
-            triggerLog += INITIALIZE;
-        }
-
-        protected override void calculate(List<sObject> records) {
-            triggerLog += CALCULATE;
-            isFieldChangedResult = isFieldChanged(records[0], TEST_SOBJECT_FIELD);
-            isFieldChangedToResult = isFieldChangedTo(records[0], TEST_SOBJECT_FIELD, TEST_FIELD_CHANGED_VALUE);
-            isFieldChangedFromResult = isFieldChangedFrom(records[0], TEST_SOBJECT_FIELD, TEST_FIELD_OLD_VALUE);
-        }
-
-        protected override void validate(List<sObject> records) {
-            triggerLog += VALIDATE;
-        }
-
-        protected override void preValidate(List<sObject> records) {
-            triggerLog += PREVALIDATE;
-        }
-
-        protected override void afterInsert(List<sObject> records) {
-            triggerLog += AFTER_INSERT;
-        }
-
-        protected override void afterUpsert(List<sObject> records) {
-            triggerLog += AFTER_UPSERT;
-        }
-
-        protected override void afterUpdate(List<sObject> records) {
-            triggerLog += AFTER_UPDATE;
-        }
-
-        protected override void validateBeforeDelete(List<sObject> records) {
-            triggerLog += VALIDATE_BEFORE_DELETE;
-        }
-
-        protected override void afterDelete(List<sObject> records) {
-            testTriggerRecords = records;
-            triggerLog += AFTER_DELETE;
-        }
-
-        protected override void afterUndelete(List<sObject> records) {
-            triggerLog += AFTER_UNDELETE;
-            isFieldChangedResult = isFieldChanged(records[0], TEST_SOBJECT_FIELD);
-        }
-    }
-
-    private static String getSequence(TriggerState state) {
-        return String.join(SEQUENCE_MAP.get(state), '');
-    }
-
-    private static void assertSequence(TriggerState state) {
-        String logToTest = getSequence(state);
-        System.assertEquals(logToTest, triggerLog, 'Sequence is wrong for ' + state.name() + ' trigger.');
-        triggerLog = '';
-    }
-
-    private static void assertIsChangedResult(Boolean expected, TriggerState state) {
-        String message = 'isFieldChanged should return ' + expected + ' in ' + state.name() + ' context';
-        if (TriggerState.T_INSERT != state || TriggerState.T_UPDATE != state) {
-            String isFieldChangedStr = expected ? ' ' : ' not ';
-            message += ' if field is' + isFieldChangedStr + 'changed';
-        }
-        System.assertEquals(expected, isFieldChangedResult, message);
-        isFieldChangedResult = null;
-    }
-
-    private static void assertIsChangedToResult(Boolean expected, TriggerState state) {
-        String message = 'isFieldChangedTo should return ' + expected + ' in ' + state.name() + ' context';
-        String isFieldChangedStr = expected ? ' ' : ' not ';
-        message += ' if field is' + isFieldChangedStr + 'changed';
-        message += expected ? ' and' : ' or';
-        message += ' new value is' + isFieldChangedStr + 'equal to ' + TEST_FIELD_CHANGED_VALUE;
-        System.assertEquals(expected, isFieldChangedToResult, message);
-        isFieldChangedToResult = null;
-    }
-
-    private static void assertIsFieldChangedFromResult(Boolean expected, TriggerState state) {
-        String message = 'isFieldChangedFrom should return ' + expected + ' in ' + state.name() + ' context';
-        String isFieldChangedStr = expected ? ' ' : ' not ';
-        message += ' if field is' + isFieldChangedStr + 'changed';
-        message += expected ? ' and' : ' or';
-        message += ' old value was' + isFieldChangedStr + 'equal to ' + TEST_FIELD_OLD_VALUE;
-        System.assertEquals(expected, isFieldChangedFromResult, message);
-        isFieldChangedFromResult = null;
-    }
-
     @isTest
     private static void testSequenceInTrigger() {
         insert TEST_RECORD;
@@ -230,5 +142,93 @@ public class Test_ATrigger {
         sObject cloned = TEST_RECORD.clone(false);
         insert cloned;
         assertSequence(TriggerState.T_INSERT);
+    }
+
+    private static String getSequence(TriggerState state) {
+        return String.join(SEQUENCE_MAP.get(state), '');
+    }
+
+    private static void assertSequence(TriggerState state) {
+        String logToTest = getSequence(state);
+        System.assertEquals(logToTest, triggerLog, 'Sequence is wrong for ' + state.name() + ' trigger.');
+        triggerLog = '';
+    }
+
+    private static void assertIsChangedResult(Boolean expected, TriggerState state) {
+        String message = 'isFieldChanged should return ' + expected + ' in ' + state.name() + ' context';
+        if (TriggerState.T_INSERT != state || TriggerState.T_UPDATE != state) {
+            String isFieldChangedStr = expected ? ' ' : ' not ';
+            message += ' if field is' + isFieldChangedStr + 'changed';
+        }
+        System.assertEquals(expected, isFieldChangedResult, message);
+        isFieldChangedResult = null;
+    }
+
+    private static void assertIsChangedToResult(Boolean expected, TriggerState state) {
+        String message = 'isFieldChangedTo should return ' + expected + ' in ' + state.name() + ' context';
+        String isFieldChangedStr = expected ? ' ' : ' not ';
+        message += ' if field is' + isFieldChangedStr + 'changed';
+        message += expected ? ' and' : ' or';
+        message += ' new value is' + isFieldChangedStr + 'equal to ' + TEST_FIELD_CHANGED_VALUE;
+        System.assertEquals(expected, isFieldChangedToResult, message);
+        isFieldChangedToResult = null;
+    }
+
+    private static void assertIsFieldChangedFromResult(Boolean expected, TriggerState state) {
+        String message = 'isFieldChangedFrom should return ' + expected + ' in ' + state.name() + ' context';
+        String isFieldChangedStr = expected ? ' ' : ' not ';
+        message += ' if field is' + isFieldChangedStr + 'changed';
+        message += expected ? ' and' : ' or';
+        message += ' old value was' + isFieldChangedStr + 'equal to ' + TEST_FIELD_OLD_VALUE;
+        System.assertEquals(expected, isFieldChangedFromResult, message);
+        isFieldChangedFromResult = null;
+    }
+
+    public class TestTriggerHandler extends ATrigger {
+        protected override void initialize(List<sObject> records) {
+            testTriggerRecords = records;
+            triggerLog += INITIALIZE;
+        }
+
+        protected override void calculate(List<sObject> records) {
+            triggerLog += CALCULATE;
+            isFieldChangedResult = isFieldChanged(records[0], TEST_SOBJECT_FIELD);
+            isFieldChangedToResult = isFieldChangedTo(records[0], TEST_SOBJECT_FIELD, TEST_FIELD_CHANGED_VALUE);
+            isFieldChangedFromResult = isFieldChangedFrom(records[0], TEST_SOBJECT_FIELD, TEST_FIELD_OLD_VALUE);
+        }
+
+        protected override void validate(List<sObject> records) {
+            triggerLog += VALIDATE;
+        }
+
+        protected override void preValidate(List<sObject> records) {
+            triggerLog += PREVALIDATE;
+        }
+
+        protected override void afterInsert(List<sObject> records) {
+            triggerLog += AFTER_INSERT;
+        }
+
+        protected override void afterUpsert(List<sObject> records) {
+            triggerLog += AFTER_UPSERT;
+        }
+
+        protected override void afterUpdate(List<sObject> records) {
+            triggerLog += AFTER_UPDATE;
+        }
+
+        protected override void validateBeforeDelete(List<sObject> records) {
+            triggerLog += VALIDATE_BEFORE_DELETE;
+        }
+
+        protected override void afterDelete(List<sObject> records) {
+            testTriggerRecords = records;
+            triggerLog += AFTER_DELETE;
+        }
+
+        protected override void afterUndelete(List<sObject> records) {
+            triggerLog += AFTER_UNDELETE;
+            isFieldChangedResult = isFieldChanged(records[0], TEST_SOBJECT_FIELD);
+        }
     }
 }
