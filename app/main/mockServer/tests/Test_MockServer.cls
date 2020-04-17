@@ -11,17 +11,6 @@ private class Test_MockServer {
 
     private static Boolean isRequestAssertionCalled = false;
 
-    public class DefaultResponse implements MockServer.HttpMockable {
-        public String status;
-        public DefaultResponse(String status) {
-            this.status = status;
-        }
-
-        public String toResponseBody() {
-            return JSON.serialize(this);
-        }
-    }
-
     @isTest
     private static void testAddResource() {
         MockServer.APIResource resource = new MockServer.APIResource(ENDPOINT);
@@ -123,6 +112,17 @@ private class Test_MockServer {
     private class TestRequestAssertion implements MockServer.RequestAsserter {
         public void assertRequest(HttpRequest req) {
             isRequestAssertionCalled = true;
+        }
+    }
+
+    private class DefaultResponse implements MockServer.HttpMockable {
+        public String status;
+        public DefaultResponse(String status) {
+            this.status = status;
+        }
+
+        public String toResponseBody() {
+            return JSON.serialize(this);
         }
     }
 }
