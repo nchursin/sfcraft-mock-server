@@ -9,7 +9,6 @@ private class Test_MockServer {
     private static final DefaultResponse FAIL_BODY = new DefaultResponse('fail');
     private static final String DEFAULT_HTTP_METHOD = 'POST';
 
-    // TODO: use HTTP methods
     // TODO: request assertion
 
     public class DefaultResponse implements MockServer.HttpMockable {

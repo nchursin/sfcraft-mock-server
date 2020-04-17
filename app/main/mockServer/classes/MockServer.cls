@@ -70,20 +70,20 @@ public with sharing class MockServer implements HttpCalloutMock {
         return response;
     }
 
-    private APIResource getAPIResource(String endpoint) {
-        endpoint = endpoint.substringBefore('?');
-        if (!this.endpointResourceMap.containsKey(endpoint)) {
-            throw createMockException(MSG_NO_MOCK_ENDPOINT, endpoint);
-        }
-        return this.endpointResourceMap.get(endpoint);
-    }
-
     public void addEndpoint(APIResource res) {
         endpointResourceMap.put(res.getEndpoint(), res);
     }
 
     public void setExpectedStatusCode(Integer statusCode) {
         this.expectedStatusCode = statusCode;
+    }
+
+    private APIResource getAPIResource(String endpoint) {
+        endpoint = endpoint.substringBefore('?');
+        if (!this.endpointResourceMap.containsKey(endpoint)) {
+            throw createMockException(MSG_NO_MOCK_ENDPOINT, endpoint);
+        }
+        return this.endpointResourceMap.get(endpoint);
     }
 
     @TestVisible
