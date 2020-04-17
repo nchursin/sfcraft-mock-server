@@ -25,8 +25,8 @@ private class Test_MockServer {
     @isTest
     private static void testAddResource() {
         MockServer.APIResource resource = new MockServer.APIResource(ENDPOINT);
-        resource.setResponse(SUCCESS_CODE, SUCCESS_BODY);
-        resource.setResponse(FAILURE_CODE, FAIL_BODY);
+        resource.setResponse('POST', SUCCESS_CODE, SUCCESS_BODY);
+        resource.setResponse('POST', FAILURE_CODE, FAIL_BODY);
         
         MockServer server = new MockServer();
         server.addEndpoint(resource);
@@ -42,6 +42,15 @@ private class Test_MockServer {
         response = server.respond(req);
         System.assertEquals(expectedCode, response.getStatusCode());
         System.assertEquals(FAIL_BODY.toResponseBody(), response.getBody());
+        
+        req.setMethod('GET');
+        String expectedExceptionMessage = MockServer.createMockException(MockServer.MSG_NO_MOCK_FOR_CODE, ENDPOINT, expectedCode).getMessage();
+        try {
+            server.respond(req);
+            System.assert(false, 'Exception expected');
+        } catch (MockServer.MockServerException ex) {
+            System.assertEquals(expectedExceptionMessage, ex.getMessage(), 'Another exception message expected');
+        }
     }
 
     @isTest
@@ -83,6 +92,7 @@ private class Test_MockServer {
     private static HttpRequest getTestRequest() {
         HttpRequest req = new HttpRequest();
         req.setEndpoint(ENDPOINT + ENDPOINT_GET_PARAMS);
+        req.setMethod('POST');
         return req;
     }
 }

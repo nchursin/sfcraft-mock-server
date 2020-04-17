@@ -16,29 +16,41 @@ public with sharing class MockServer implements HttpCalloutMock {
     public class APIResource {
         private String endpoint;
 
-        private Map<Integer, HttpResponse> responseMap;
+        private Map<String, Map<Integer, HttpResponse>> responseMap;
+        private Map<Integer, HttpResponse> responseMapOld;
 
         public APIResource (String endpoint) {
             this.endpoint = endpoint;
-            this.responseMap = new Map<Integer, HttpResponse>();
+            this.responseMapOld = new Map<Integer, HttpResponse>();
+            this.responseMap = new Map<String, Map<Integer, HttpResponse>>();
         }
 
         public String getEndpoint() {
             return this.endpoint;
         }
 
-        public void setResponse(Integer statusCode, HttpMockable responseBody) {
+        public void setResponse(String method, Integer statusCode, HttpMockable responseBody) {
             HttpResponse response = new HttpResponse();
             response.setBody(responseBody.toResponseBody());
             response.setStatusCode(statusCode);
-            this.responseMap.put(statusCode, response);
+            Map<Integer, HttpResponse> methodResponseMap = this.responseMap.get(method);
+            if (null == methodResponseMap) {
+                methodResponseMap = new Map<Integer, HttpResponse>();
+                this.responseMap.put(method, methodResponseMap);
+            }
+            methodResponseMap.put(statusCode, response);
         }
 
-        public HttpResponse getResponse(Integer statusCode) {
-             if (!this.responseMap.containsKey(statusCode)) {
+        public HttpResponse getResponse(String method, Integer statusCode) {
+            Map<Integer, HttpResponse> methodResponseMap = this.responseMap.get(method);
+            if (null == methodResponseMap) {
                 throw createMockException(MSG_NO_MOCK_FOR_CODE, this.endpoint, statusCode);
             }
-            return this.responseMap.get(statusCode);
+            HttpResponse result = methodResponseMap.get(statusCode);
+            if (null == result) {
+                throw createMockException(MSG_NO_MOCK_FOR_CODE, this.endpoint, statusCode);
+            }
+            return result;
         }
     }
 
@@ -49,8 +61,10 @@ public with sharing class MockServer implements HttpCalloutMock {
 
     public HttpResponse respond(HttpRequest req) {
         String endpoint = req.getEndpoint();
+        String method = req.getMethod();
+
         APIResource resource = getAPIResource(endpoint);
-        HttpResponse response = resource.getResponse(this.expectedStatusCode);
+        HttpResponse response = resource.getResponse(method, this.expectedStatusCode);
         return response;
     }
 
