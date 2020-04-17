@@ -1,5 +1,7 @@
 public with sharing class MockServer implements HttpCalloutMock {
     @TestVisible
+    private static final String MSG_NO_MOCK_FOR_METHOD = 'No HTTP method {1} found for the endpoint: {0}';
+    @TestVisible
     private static final String MSG_NO_MOCK_FOR_CODE = 'No status code {1} found for the endpoint: {0}';
     @TestVisible
     private static final String MSG_NO_MOCK_ENDPOINT = 'No API Resource found for endpoint: {0}';
@@ -44,11 +46,11 @@ public with sharing class MockServer implements HttpCalloutMock {
         public HttpResponse getResponse(String method, Integer statusCode) {
             Map<Integer, HttpResponse> methodResponseMap = this.responseMap.get(method);
             if (null == methodResponseMap) {
-                throw createMockException(MSG_NO_MOCK_FOR_CODE, this.endpoint, statusCode);
+                throw createMockException(MSG_NO_MOCK_FOR_METHOD, new List<String> { this.endpoint, method });
             }
             HttpResponse result = methodResponseMap.get(statusCode);
             if (null == result) {
-                throw createMockException(MSG_NO_MOCK_FOR_CODE, this.endpoint, statusCode);
+                throw createMockException(MSG_NO_MOCK_FOR_CODE, this.endpoint, String.valueOf(statusCode));
             }
             return result;
         }
@@ -85,18 +87,23 @@ public with sharing class MockServer implements HttpCalloutMock {
     }
 
     @TestVisible
-    private static MockServer.MockServerException createMockException(String message, String endpoint) {
-        return createMockException(message, endpoint, null);
+    private static MockServer.MockServerException createMockException(String message, String param1) {
+        return createMockException(message, new List<String> { param1 });
     }
 
     @TestVisible
-    private static MockServer.MockServerException createMockException(String message, String endpoint, Integer statusCode) {
+    private static MockServer.MockServerException createMockException(String message, String param1, String param2) {
+        return createMockException(message,
+            new List<String> {
+                param1,
+                param2
+            });
+    }
+
+    private static MockServer.MockServerException createMockException(String message, List<String> params) {
         String expectedMessage = String.format(
             message,
-            new List<String> {
-                endpoint,
-                String.valueOf(statusCode)
-            }
+            params
         );
         return new MockServer.MockServerException(expectedMessage);
     }

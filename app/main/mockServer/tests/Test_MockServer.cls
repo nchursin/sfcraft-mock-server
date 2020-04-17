@@ -7,6 +7,7 @@ private class Test_MockServer {
     private static final Integer FAILURE_CODE = 400;
     private static final DefaultResponse SUCCESS_BODY = new DefaultResponse('ok');
     private static final DefaultResponse FAIL_BODY = new DefaultResponse('fail');
+    private static final String DEFAULT_HTTP_METHOD = 'POST';
 
     // TODO: use HTTP methods
     // TODO: request assertion
@@ -25,8 +26,8 @@ private class Test_MockServer {
     @isTest
     private static void testAddResource() {
         MockServer.APIResource resource = new MockServer.APIResource(ENDPOINT);
-        resource.setResponse('POST', SUCCESS_CODE, SUCCESS_BODY);
-        resource.setResponse('POST', FAILURE_CODE, FAIL_BODY);
+        resource.setResponse(DEFAULT_HTTP_METHOD, SUCCESS_CODE, SUCCESS_BODY);
+        resource.setResponse(DEFAULT_HTTP_METHOD, FAILURE_CODE, FAIL_BODY);
         
         MockServer server = new MockServer();
         server.addEndpoint(resource);
@@ -42,9 +43,19 @@ private class Test_MockServer {
         response = server.respond(req);
         System.assertEquals(expectedCode, response.getStatusCode());
         System.assertEquals(FAIL_BODY.toResponseBody(), response.getBody());
+    }
+
+    @isTest
+    private static void testNoRespForStatusCode() {
+        MockServer.APIResource resource = new MockServer.APIResource(ENDPOINT);
+        resource.setResponse(DEFAULT_HTTP_METHOD, FAILURE_CODE, SUCCESS_BODY);
         
-        req.setMethod('GET');
-        String expectedExceptionMessage = MockServer.createMockException(MockServer.MSG_NO_MOCK_FOR_CODE, ENDPOINT, expectedCode).getMessage();
+        MockServer server = new MockServer();
+        server.addEndpoint(resource);
+
+        HttpRequest req = getTestRequest();
+        Integer expectedCode = SUCCESS_CODE;
+        String expectedExceptionMessage = MockServer.createMockException(MockServer.MSG_NO_MOCK_FOR_CODE, ENDPOINT, String.valueOf(expectedCode)).getMessage();
         try {
             server.respond(req);
             System.assert(false, 'Exception expected');
@@ -54,15 +65,14 @@ private class Test_MockServer {
     }
 
     @isTest
-    private static void testNoRespForStatusCode() {
+    private static void testNoRespForMethod() {
         MockServer.APIResource resource = new MockServer.APIResource(ENDPOINT);
         
         MockServer server = new MockServer();
         server.addEndpoint(resource);
 
         HttpRequest req = getTestRequest();
-        Integer expectedCode = 200;
-        String expectedExceptionMessage = MockServer.createMockException(MockServer.MSG_NO_MOCK_FOR_CODE, ENDPOINT, expectedCode).getMessage();
+        String expectedExceptionMessage = MockServer.createMockException(MockServer.MSG_NO_MOCK_FOR_METHOD, ENDPOINT, req.getMethod()).getMessage();
         try {
             server.respond(req);
             System.assert(false, 'Exception expected');
@@ -92,7 +102,7 @@ private class Test_MockServer {
     private static HttpRequest getTestRequest() {
         HttpRequest req = new HttpRequest();
         req.setEndpoint(ENDPOINT + ENDPOINT_GET_PARAMS);
-        req.setMethod('POST');
+        req.setMethod(DEFAULT_HTTP_METHOD);
         return req;
     }
 }
