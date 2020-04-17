@@ -13,18 +13,22 @@ public with sharing class MockServer implements HttpCalloutMock {
         String toResponseBody();
     }
 
+    public interface RequestAsserter {
+        void assertRequest(HttpRequest req);
+    }
+
     public class MockServerException extends Exception {}
 
     public class APIResource {
         private String endpoint;
 
         private Map<String, Map<Integer, HttpResponse>> responseMap;
-        private Map<Integer, HttpResponse> responseMapOld;
+        private List<RequestAsserter> assertions;
 
         public APIResource (String endpoint) {
             this.endpoint = endpoint;
-            this.responseMapOld = new Map<Integer, HttpResponse>();
             this.responseMap = new Map<String, Map<Integer, HttpResponse>>();
+            this.assertions = new List<RequestAsserter>();
         }
 
         public String getEndpoint() {
@@ -41,6 +45,17 @@ public with sharing class MockServer implements HttpCalloutMock {
                 this.responseMap.put(method, methodResponseMap);
             }
             methodResponseMap.put(statusCode, response);
+        }
+
+        public void addAssertion(RequestAsserter assertion) {
+            if (null == assertion) {
+                return;
+            }
+            this.assertions.add(assertion);
+        }
+
+        public List<RequestAsserter> getAssertions() {
+            return this.assertions;
         }
 
         public HttpResponse getResponse(String method, Integer statusCode) {
@@ -66,6 +81,9 @@ public with sharing class MockServer implements HttpCalloutMock {
         String method = req.getMethod();
 
         APIResource resource = getAPIResource(endpoint);
+        for (RequestAsserter assertion : resource.getAssertions()) {
+            assertion.assertRequest(req);
+        }
         HttpResponse response = resource.getResponse(method, this.expectedStatusCode);
         return response;
     }

@@ -9,7 +9,7 @@ private class Test_MockServer {
     private static final DefaultResponse FAIL_BODY = new DefaultResponse('fail');
     private static final String DEFAULT_HTTP_METHOD = 'POST';
 
-    // TODO: request assertion
+    private static Boolean isRequestAssertionCalled = false;
 
     public class DefaultResponse implements MockServer.HttpMockable {
         public String status;
@@ -98,10 +98,31 @@ private class Test_MockServer {
         }
     }
 
+    @isTest
+    private static void testRequestAssertion() {
+        MockServer.APIResource resource = new MockServer.APIResource(ENDPOINT);
+        resource.setResponse(DEFAULT_HTTP_METHOD, SUCCESS_CODE, SUCCESS_BODY);
+        resource.addAssertion(new TestRequestAssertion());
+        resource.addAssertion(null);
+        
+        MockServer server = new MockServer();
+        server.addEndpoint(resource);
+
+        server.respond(getTestRequest());
+
+        System.assert(isRequestAssertionCalled, 'Assertion was not called');
+    }
+
     private static HttpRequest getTestRequest() {
         HttpRequest req = new HttpRequest();
         req.setEndpoint(ENDPOINT + ENDPOINT_GET_PARAMS);
         req.setMethod(DEFAULT_HTTP_METHOD);
         return req;
+    }
+
+    private class TestRequestAssertion implements MockServer.RequestAsserter {
+        public void assertRequest(HttpRequest req) {
+            isRequestAssertionCalled = true;
+        }
     }
 }
