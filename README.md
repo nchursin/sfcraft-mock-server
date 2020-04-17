@@ -1,58 +1,75 @@
-# Salesforce App
+# Salesforce Clean Code
 
-This guide helps Salesforce developers who are new to Visual Studio Code go from zero to a deployed app using Salesforce Extensions for VS Code and Salesforce CLI.
+This library consists of several parts:
 
-## Part 1: Choosing a Development Model
+1. Trigger framework
+1. Mock server
+1. Logger
 
-There are two types of developer processes or models supported in Salesforce Extensions for VS Code and Salesforce CLI. These models are explained below. Each model offers pros and cons and is fully supported.
+Each part is completely independent and can be extracted to use separately.
 
-### Package Development Model
+## Trigger framework
 
-The package development model allows you to create self-contained applications or libraries that are deployed to your org as a single package. These packages are typically developed against source-tracked orgs called scratch orgs. This development model is geared toward a more modern type of software development process that uses org source tracking, source control, and continuous integration and deployment.
+[Trigger Framework](../blob/master/app/main/triggerFramework) is located in `app/main/triggerFramework` folder.
 
-If you are starting a new project, we recommend that you consider the package development model. To start developing with this model in Visual Studio Code, see [Package Development Model with VS Code](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/package-development-model). For details about the model, see the [Package Development Model](https://trailhead.salesforce.com/en/content/learn/modules/sfdx_dev_model) Trailhead module.
+To use the framework extend the ATrigger class. The following methods exists to be overriden:
 
-If you are developing against scratch orgs, use the command `SFDX: Create Project` (VS Code) or `sfdx force:project:create` (Salesforce CLI)  to create your project. If you used another command, you might want to start over with that command.
+1. `protected override void initialize(List<sObject> records)`
+1. `protected override void calculate(List<sObject> records)`
+1. `protected override void validate(List<sObject> records)`
+1. `protected override void preValidate(List<sObject> records)`
+1. `protected override void afterInsert(List<sObject> records)`
+1. `protected override void afterUpsert(List<sObject> records)`
+1. `protected override void afterUpdate(List<sObject> records)`
+1. `protected override void validateBeforeDelete(List<sObject> records)`
+1. `protected override void afterDelete(List<sObject> records)`
+1. `protected override void afterUndelete(List<sObject> records)`
 
-When working with source-tracked orgs, use the commands `SFDX: Push Source to Org` (VS Code) or `sfdx force:source:push` (Salesforce CLI) and `SFDX: Pull Source from Org` (VS Code) or `sfdx force:source:pull` (Salesforce CLI). Do not use the `Retrieve` and `Deploy` commands with scratch orgs.
+`List<sObject> records` parameter is a list of records in a trigger. These are `new` records for insert, update, and undelete triggers, and `old` records for delete triggers.
 
-### Org Development Model
+There is also a set of helper methods:
 
-The org development model allows you to connect directly to a non-source-tracked org (sandbox, Developer Edition (DE) org, Trailhead Playground, or even a production org) to retrieve and deploy code directly. This model is similar to the type of development you have done in the past using tools such as Force.com IDE or MavensMate.
+1. `protected Boolean isFieldChanged(sObject record, Schema.SObjectField field);`
+1. `protected Boolean isFieldChangedTo(sObject record, Schema.SObjectField field, Object checkValue);`
+1. `protected Boolean isFieldChangedFrom(sObject record, Schema.SObjectField field, Object checkValue);`
+1. `protected sObject getOldRecord(sObject record);`
+1. `protected Object getOldFieldValue(sObject record, Schema.SObjectField field);`
 
-To start developing with this model in Visual Studio Code, see [Org Development Model with VS Code](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/org-development-model). For details about the model, see the [Org Development Model](https://trailhead.salesforce.com/content/learn/modules/org-development-model) Trailhead module.
+Finally the trigger framework supports partial trigger disablement.
 
-If you are developing against non-source-tracked orgs, use the command `SFDX: Create Project with Manifest` (VS Code) or `sfdx force:project:create --manifest` (Salesforce CLI) to create your project. If you used another command, you might want to start over with this command to create a Salesforce DX project.
+1. `public static void disable(Schema.SObjectType sobjType, TriggerOperation triggerOper);`
+1. `public static void disableAll(Schema.SObjectType sobjType);`
+1. `public static void disableAll();`
+1. `public static void enableAll();`
 
-When working with non-source-tracked orgs, use the commands `SFDX: Deploy Source to Org` (VS Code) or `sfdx force:source:deploy` (Salesforce CLI) and `SFDX: Retrieve Source from Org` (VS Code) or `sfdx force:source:retrieve` (Salesforce CLI). The `Push` and `Pull` commands work only on orgs with source tracking (scratch orgs).
+`TriggerOperation` here is a standard Salesforce `TriggerOperation` enum;
 
-## The `sfdx-project.json` File
+For usage examples take a look at the [ATrigger test class](../blob/master/app/main/triggerFramework/tests/Test_ATrigger.cls).
 
-The `sfdx-project.json` file contains useful configuration information for your project. See [Salesforce DX Project Configuration](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm) in the _Salesforce DX Developer Guide_ for details about this file.
+Another word on tests: I used account object for testing, which may not suite you. In order to change this you need:
 
-The most important parts of this file for getting started are the `sfdcLoginUrl` and `packageDirectories` properties.
-
-The `sfdcLoginUrl` specifies the default login URL to use when authorizing an org.
-
-The `packageDirectories` filepath tells VS Code and Salesforce CLI where the metadata files for your project are stored. You need at least one package directory set in your file. The default setting is shown below. If you set the value of the `packageDirectories` property called `path` to `force-app`, by default your metadata goes in the `force-app` directory. If you want to change that directory to something like `src`, simply change the `path` value and make sure the directory you’re pointing to exists.
-
-```json
-"packageDirectories" : [
-    {
-      "path": "force-app",
-      "default": true
-    }
-]
+1. Create a trigger for object you want to use and paste the code from `app/main/triggerFramework/triggers/TestTrigger.trigger` to you newly created trigger.
+1. Update the following variables in `app/main/triggerFramework/tests/Test_ATrigger.cls` if needed:
+```java
+private static final sObject TEST_RECORD = new Account(Name = 'Test_ATrigger');
+private static final String TEST_FIELD_NAME = 'Name';
+private static final Object TEST_FIELD_CHANGED_VALUE = 'Changed Name';
 ```
 
-## Part 2: Working with Source
+## Mock server
 
-For details about developing against scratch orgs, see the [Package Development Model](https://trailhead.salesforce.com/en/content/learn/modules/sfdx_dev_model) module on Trailhead or [Package Development Model with VS Code](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/package-development-model).
+Mock server is an implementation of `HttpCalloutMock` which can help you make your mocks more organized.
 
-For details about developing against orgs that don’t have source tracking, see the [Org Development Model](https://trailhead.salesforce.com/content/learn/modules/org-development-model) module on Trailhead or [Org Development Model with VS Code](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/org-development-model).
+The mock server framework consists of the following parts:
 
-## Part 3: Deploying to Production
+1. `MockServer` class - the actual mock server.
+1. `MockServer.APIResource` class - a class which actually represents a single resource available at some endpoint.
+1. `MockServer.RequestAsserter` interface - implement it and add to a resource to run assertion "on server side".
+1. `MockServer.HttpMockable` interface - implement it by class that represents you server response. E.g. you parse body into a class `ServerResponseBody`. Then you need to implement the `MockServer.HttpMockable` by it to be teach the `MockServer` to respond with it.
+1. `MockServer.MockServerException` - exception that is thrown by `MockServer` in case something went wrong, e.g. misconfiguration.
 
-Don’t deploy your code to production directly from Visual Studio Code. The deploy and retrieve commands do not support transactional operations, which means that a deployment can fail in a partial state. Also, the deploy and retrieve commands don’t run the tests needed for production deployments. The push and pull commands are disabled for orgs that don’t have source tracking, including production orgs.
+For usage examples take a look at the [`MockServer` test class](../blob/master/app/main/mockServer/tests/Test_MockServer.cls).
 
-Deploy your changes to production using [packaging](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_dev2gp.htm) or by [converting your source](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_reference.meta/sfdx_cli_reference/cli_reference_force_source.htm#cli_reference_convert) into metadata format and using the [metadata deploy command](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_reference.meta/sfdx_cli_reference/cli_reference_force_mdapi.htm#cli_reference_deploy).
+## Logger
+
+Documenting in progress...
