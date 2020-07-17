@@ -96,7 +96,7 @@ public with sharing class MockServer implements HttpCalloutMock {
         this.expectedStatusCode = statusCode;
     }
 
-    private APIResource getAPIResource(String endpoint) {
+    public APIResource getAPIResource(String endpoint) {
         endpoint = endpoint.substringBefore('?');
         if (!this.endpointResourceMap.containsKey(endpoint)) {
             throw createMockException(MSG_NO_MOCK_ENDPOINT, endpoint);
