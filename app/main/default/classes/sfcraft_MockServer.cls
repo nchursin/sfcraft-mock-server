@@ -36,8 +36,12 @@ public with sharing class sfcraft_MockServer implements HttpCalloutMock {
         }
 
         public void setResponse(String method, Integer statusCode, HttpMockable responseBody) {
+            this.setResponse(method, statusCode, responseBody.toResponseBody());
+        }
+
+        public void setResponse(String method, Integer statusCode, String responseBody) {
             HttpResponse response = new HttpResponse();
-            response.setBody(responseBody.toResponseBody());
+            response.setBody(responseBody);
             response.setStatusCode(statusCode);
             Map<Integer, HttpResponse> methodResponseMap = this.responseMap.get(method);
             if (null == methodResponseMap) {
