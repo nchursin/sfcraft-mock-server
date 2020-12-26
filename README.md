@@ -1,8 +1,8 @@
 # Salesforce Craft Mock Server
 
-<a href="https://githubsfdeploy.herokuapp.com?owner=nchursin&repo=sfcraft-mock-server">
+<a href="https://githubsfdeploy.herokuapp.com?owner=nchursin&repo=sfcraft-mock-server&ref=master">
   <img alt="Deploy to Salesforce"
-       src="https://raw.githubusercontent.com/afawcett/githubsfdeploy/master/src/main/webapp/resources/img/deploy.png">
+       src="https://raw.githubusercontent.com/afawcett/githubsfdeploy/master/deploy.png">
 </a>
 
 Mock server is an implementation of `HttpCalloutMock` which can help you make your mocks more organized.
