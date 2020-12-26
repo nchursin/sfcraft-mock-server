@@ -12,17 +12,13 @@ private class sfcraft_Test_MockServer {
     private static Boolean isRequestAssertionCalled = false;
 
     @isTest
-    private static void howToAddResourceToServerUsingResponseClass() {
+    private static void howToAddSuccessResponseToTheServerUsingResponseClass() {
         // Create resourse. Resource is basically an endpoint on your real server
         sfcraft_MockServer.APIResource resource = new sfcraft_MockServer.APIResource(ENDPOINT);
         // Setting up a success response.
         // SUCCESS_BODY is an instance of a response wrapper class
         // SUCCESS_CODE is 200, which is default
         resource.setResponse(HTTP_METHOD, SUCCESS_CODE, SUCCESS_BODY);
-        // Setting up a sample failure response.
-        // FAIL_BODY is an instance of a response wrapper class
-        // SUCCESS_CODE is 400 in this example
-        resource.setResponse(HTTP_METHOD, FAILURE_CODE, FAIL_BODY);
         
         // Instantiating a server
         sfcraft_MockServer server = new sfcraft_MockServer();
@@ -37,11 +33,29 @@ private class sfcraft_Test_MockServer {
         HttpResponse response = new Http().send(req);
         System.assertEquals(expectedCode, response.getStatusCode());
         System.assertEquals(SUCCESS_BODY.toResponseBody(), response.getBody());
+    }
 
-        expectedCode = FAILURE_CODE;
+    @isTest
+    private static void howToAddFailureResponseToTheServerUsingResponseClass() {
+        // Create resourse. Resource is basically an endpoint on your real server
+        sfcraft_MockServer.APIResource resource = new sfcraft_MockServer.APIResource(ENDPOINT);
+        // Setting up a sample failure response.
+        // FAIL_BODY is an instance of a response wrapper class
+        // SUCCESS_CODE is 400 in this example
+        resource.setResponse(HTTP_METHOD, FAILURE_CODE, FAIL_BODY);
+        
+        // Instantiating a server
+        sfcraft_MockServer server = new sfcraft_MockServer();
+        // Setting server as mock
+        server.setAsMock();
+        // Adding resource to server
+        server.addEndpoint(resource);
+
+        HttpRequest req = getTestRequest();
+        Integer expectedCode = FAILURE_CODE;
         // Setting server to return 400
         server.setExpectedStatusCode(expectedCode);
-        response = new Http().send(req);
+        HttpResponse response = new Http().send(req);
         System.assertEquals(expectedCode, response.getStatusCode());
         System.assertEquals(FAIL_BODY.toResponseBody(), response.getBody());
 
@@ -67,6 +81,7 @@ private class sfcraft_Test_MockServer {
         System.assert(isRequestAssertionCalled, 'Assertion was not called');
     }
 
+    // Exceptions
     @isTest
     private static void ifNoResponseForStatusCode_ThenServerThrowsMockServerException() {
         sfcraft_MockServer.APIResource resource = new sfcraft_MockServer.APIResource(ENDPOINT);
