@@ -1,6 +1,6 @@
 # Salesforce Craft Mock Server
 
-<a href="https://githubsfdeploy.herokuapp.com?owner=financialforcedev&repo=apex-mdapi">
+<a href="https://githubsfdeploy.herokuapp.com?owner=nchursin&repo=sfcraft-mock-server">
   <img alt="Deploy to Salesforce"
        src="https://raw.githubusercontent.com/afawcett/githubsfdeploy/master/src/main/webapp/resources/img/deploy.png">
 </a>
@@ -16,4 +16,5 @@ The mock server framework consists of the following parts:
 1. `MockServer.MockServerException` - exception that is thrown by `MockServer` in case something went wrong, e.g. misconfiguration.
 
 ### Example info
+
 For usage examples take a look at the [`MockServer` test class](../master/app/main/mockServer/tests/Test_MockServer.cls).
