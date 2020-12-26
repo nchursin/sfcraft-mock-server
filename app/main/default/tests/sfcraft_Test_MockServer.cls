@@ -5,38 +5,63 @@ private class sfcraft_Test_MockServer {
     private static final String ENDPOINT_GET_PARAMS = '?id=1234';
     private static final Integer SUCCESS_CODE = 200;
     private static final Integer FAILURE_CODE = 400;
-    private static final DefaultResponse SUCCESS_BODY = new DefaultResponse('ok');
-    private static final DefaultResponse FAIL_BODY = new DefaultResponse('fail');
-    private static final String DEFAULT_HTTP_METHOD = 'POST';
+    private static final DemoResponse SUCCESS_BODY = new DemoResponse('ok');
+    private static final DemoResponse FAIL_BODY = new DemoResponse('fail');
+    private static final String HTTP_METHOD = 'POST';
 
     private static Boolean isRequestAssertionCalled = false;
 
     @isTest
-    private static void AddResource() {
+    private static void howToAddResourceToServerUsingResponseClass() {
+        // Create resourse. Resource is basically an endpoint on your real server
         sfcraft_MockServer.APIResource resource = new sfcraft_MockServer.APIResource(ENDPOINT);
-        resource.setResponse(DEFAULT_HTTP_METHOD, SUCCESS_CODE, SUCCESS_BODY);
-        resource.setResponse(DEFAULT_HTTP_METHOD, FAILURE_CODE, FAIL_BODY);
+        // Setting up a success response.
+        // SUCCESS_BODY is an instance of a response wrapper class
+        // SUCCESS_CODE is 200, which is default
+        resource.setResponse(HTTP_METHOD, SUCCESS_CODE, SUCCESS_BODY);
+        // Setting up a sample failure response.
+        // FAIL_BODY is an instance of a response wrapper class
+        // SUCCESS_CODE is 400 in this example
+        resource.setResponse(HTTP_METHOD, FAILURE_CODE, FAIL_BODY);
         
+        // Instantiating a server
         sfcraft_MockServer server = new sfcraft_MockServer();
+        server.setAsMock();
         server.addEndpoint(resource);
 
         HttpRequest req = getTestRequest();
-        Integer expectedCode = 200;
-        HttpResponse response = server.respond(req);
+        Integer expectedCode = SUCCESS_CODE;
+        HttpResponse response = new Http().send(req);
         System.assertEquals(expectedCode, response.getStatusCode());
         System.assertEquals(SUCCESS_BODY.toResponseBody(), response.getBody());
 
-        expectedCode = 400;
+        expectedCode = FAILURE_CODE;
         server.setExpectedStatusCode(expectedCode);
-        response = server.respond(req);
+        response = new Http().send(req);
         System.assertEquals(expectedCode, response.getStatusCode());
         System.assertEquals(FAIL_BODY.toResponseBody(), response.getBody());
     }
 
     @isTest
-    private static void NoRespForStatusCode() {
+    private static void howToAssertRequestReceivedByServer() {
         sfcraft_MockServer.APIResource resource = new sfcraft_MockServer.APIResource(ENDPOINT);
-        resource.setResponse(DEFAULT_HTTP_METHOD, FAILURE_CODE, SUCCESS_BODY);
+        resource.setResponse(HTTP_METHOD, SUCCESS_CODE, SUCCESS_BODY);
+        resource.addAssertion(new DemoRequestAssertion());
+        resource.addAssertion(null);
+        
+        sfcraft_MockServer server = new sfcraft_MockServer();
+        server.setAsMock();
+        server.addEndpoint(resource);
+
+        new Http().send(getTestRequest());
+
+        System.assert(isRequestAssertionCalled, 'Assertion was not called');
+    }
+
+    @isTest
+    private static void ifNoResponseForStatusCode_ThenServerThrowsMockServerException() {
+        sfcraft_MockServer.APIResource resource = new sfcraft_MockServer.APIResource(ENDPOINT);
+        resource.setResponse(HTTP_METHOD, FAILURE_CODE, SUCCESS_BODY);
         
         sfcraft_MockServer server = new sfcraft_MockServer();
         server.addEndpoint(resource);
@@ -53,7 +78,7 @@ private class sfcraft_Test_MockServer {
     }
 
     @isTest
-    private static void NoRespForMethod() {
+    private static void ifNoResponseForMethod_ThenServerThrowsMockServerException() {
         sfcraft_MockServer.APIResource resource = new sfcraft_MockServer.APIResource(ENDPOINT);
         
         sfcraft_MockServer server = new sfcraft_MockServer();
@@ -70,7 +95,7 @@ private class sfcraft_Test_MockServer {
     }
 
     @isTest
-    private static void NoEndpoint() {
+    private static void ifNoEndpointFound_ThenServerThrowsMockServerException() {
         sfcraft_MockServer.APIResource resource = new sfcraft_MockServer.APIResource(ENDPOINT);
         
         sfcraft_MockServer server = new sfcraft_MockServer();
@@ -87,37 +112,22 @@ private class sfcraft_Test_MockServer {
         }
     }
 
-    @isTest
-    private static void RequestAssertion() {
-        sfcraft_MockServer.APIResource resource = new sfcraft_MockServer.APIResource(ENDPOINT);
-        resource.setResponse(DEFAULT_HTTP_METHOD, SUCCESS_CODE, SUCCESS_BODY);
-        resource.addAssertion(new TestRequestAssertion());
-        resource.addAssertion(null);
-        
-        sfcraft_MockServer server = new sfcraft_MockServer();
-        server.addEndpoint(resource);
-
-        server.respond(getTestRequest());
-
-        System.assert(isRequestAssertionCalled, 'Assertion was not called');
-    }
-
     private static HttpRequest getTestRequest() {
         HttpRequest req = new HttpRequest();
         req.setEndpoint(ENDPOINT + ENDPOINT_GET_PARAMS);
-        req.setMethod(DEFAULT_HTTP_METHOD);
+        req.setMethod(HTTP_METHOD);
         return req;
     }
 
-    private class TestRequestAssertion implements sfcraft_MockServer.RequestAsserter {
+    private class DemoRequestAssertion implements sfcraft_MockServer.RequestAsserter {
         public void assertRequest(HttpRequest req) {
             isRequestAssertionCalled = true;
         }
     }
 
-    private class DefaultResponse implements sfcraft_MockServer.HttpMockable {
+    private class DemoResponse implements sfcraft_MockServer.HttpMockable {
         public String status;
-        public DefaultResponse(String status) {
+        public DemoResponse(String status) {
             this.status = status;
         }
 

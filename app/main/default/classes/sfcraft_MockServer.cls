@@ -76,6 +76,10 @@ public with sharing class sfcraft_MockServer implements HttpCalloutMock {
         this.expectedStatusCode = 200;
     }
 
+    public void setAsMock() {
+        Test.setMock(HttpCalloutMock.class, this);
+    }
+
     public HttpResponse respond(HttpRequest req) {
         String endpoint = req.getEndpoint();
         String method = req.getMethod();
