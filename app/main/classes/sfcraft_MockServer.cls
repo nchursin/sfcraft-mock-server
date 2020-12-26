@@ -1,4 +1,4 @@
-public with sharing class MockServer implements HttpCalloutMock {
+public with sharing class sfcraft_MockServer implements HttpCalloutMock {
     @TestVisible
     private static final String MSG_NO_MOCK_FOR_METHOD = 'No HTTP method {1} found for the endpoint: {0}';
     @TestVisible
@@ -71,7 +71,7 @@ public with sharing class MockServer implements HttpCalloutMock {
         }
     }
 
-    public MockServer() {
+    public sfcraft_MockServer() {
         this.endpointResourceMap = new Map<String, APIResource>();
         this.expectedStatusCode = 200;
     }
@@ -105,12 +105,12 @@ public with sharing class MockServer implements HttpCalloutMock {
     }
 
     @TestVisible
-    private static MockServer.MockServerException createMockException(String message, String param1) {
+    private static sfcraft_MockServer.MockServerException createMockException(String message, String param1) {
         return createMockException(message, new List<String> { param1 });
     }
 
     @TestVisible
-    private static MockServer.MockServerException createMockException(String message, String param1, String param2) {
+    private static sfcraft_MockServer.MockServerException createMockException(String message, String param1, String param2) {
         return createMockException(message,
             new List<String> {
                 param1,
@@ -118,11 +118,11 @@ public with sharing class MockServer implements HttpCalloutMock {
             });
     }
 
-    private static MockServer.MockServerException createMockException(String message, List<String> params) {
+    private static sfcraft_MockServer.MockServerException createMockException(String message, List<String> params) {
         String expectedMessage = String.format(
             message,
             params
         );
-        return new MockServer.MockServerException(expectedMessage);
+        return new sfcraft_MockServer.MockServerException(expectedMessage);
     }
 }
