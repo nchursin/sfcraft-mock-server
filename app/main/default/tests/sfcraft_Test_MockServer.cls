@@ -26,17 +26,26 @@ private class sfcraft_Test_MockServer {
         
         // Instantiating a server
         sfcraft_MockServer server = new sfcraft_MockServer();
+        // Setting server as mock
         server.setAsMock();
+        // Adding resource to server
         server.addEndpoint(resource);
 
         HttpRequest req = getTestRequest();
         Integer expectedCode = SUCCESS_CODE;
+        // By default server always returns 200
         HttpResponse response = new Http().send(req);
         System.assertEquals(expectedCode, response.getStatusCode());
         System.assertEquals(SUCCESS_BODY.toResponseBody(), response.getBody());
 
         expectedCode = FAILURE_CODE;
+        // Setting server to return 400
         server.setExpectedStatusCode(expectedCode);
+        response = new Http().send(req);
+        System.assertEquals(expectedCode, response.getStatusCode());
+        System.assertEquals(FAIL_BODY.toResponseBody(), response.getBody());
+
+        // After you set up an expected code all the responses will respond with it
         response = new Http().send(req);
         System.assertEquals(expectedCode, response.getStatusCode());
         System.assertEquals(FAIL_BODY.toResponseBody(), response.getBody());
