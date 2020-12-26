@@ -12,7 +12,7 @@ private class sfcraft_Test_MockServer {
     private static Boolean isRequestAssertionCalled = false;
 
     @isTest
-    private static void testAddResource() {
+    private static void AddResource() {
         sfcraft_MockServer.APIResource resource = new sfcraft_MockServer.APIResource(ENDPOINT);
         resource.setResponse(DEFAULT_HTTP_METHOD, SUCCESS_CODE, SUCCESS_BODY);
         resource.setResponse(DEFAULT_HTTP_METHOD, FAILURE_CODE, FAIL_BODY);
@@ -34,7 +34,7 @@ private class sfcraft_Test_MockServer {
     }
 
     @isTest
-    private static void testNoRespForStatusCode() {
+    private static void NoRespForStatusCode() {
         sfcraft_MockServer.APIResource resource = new sfcraft_MockServer.APIResource(ENDPOINT);
         resource.setResponse(DEFAULT_HTTP_METHOD, FAILURE_CODE, SUCCESS_BODY);
         
@@ -53,7 +53,7 @@ private class sfcraft_Test_MockServer {
     }
 
     @isTest
-    private static void testNoRespForMethod() {
+    private static void NoRespForMethod() {
         sfcraft_MockServer.APIResource resource = new sfcraft_MockServer.APIResource(ENDPOINT);
         
         sfcraft_MockServer server = new sfcraft_MockServer();
@@ -70,7 +70,7 @@ private class sfcraft_Test_MockServer {
     }
 
     @isTest
-    private static void testNoEndpoint() {
+    private static void NoEndpoint() {
         sfcraft_MockServer.APIResource resource = new sfcraft_MockServer.APIResource(ENDPOINT);
         
         sfcraft_MockServer server = new sfcraft_MockServer();
@@ -88,7 +88,7 @@ private class sfcraft_Test_MockServer {
     }
 
     @isTest
-    private static void testRequestAssertion() {
+    private static void RequestAssertion() {
         sfcraft_MockServer.APIResource resource = new sfcraft_MockServer.APIResource(ENDPOINT);
         resource.setResponse(DEFAULT_HTTP_METHOD, SUCCESS_CODE, SUCCESS_BODY);
         resource.addAssertion(new TestRequestAssertion());
