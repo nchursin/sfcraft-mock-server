@@ -1,6 +1,7 @@
 @isTest
 private class sfcraft_Test_MockServer {
     private static final String ENDPOINT = 'https://example.com/testEndpoint';
+    private static final String ENDPOINT2 = 'https://example.com/testEndpoint2';
     private static final String ENDPOINT_NOT_FOUND = 'https://example.com/notFoundEndpoint';
     private static final String ENDPOINT_GET_PARAMS = '?id=1234';
     private static final Integer SUCCESS_CODE = 200;
@@ -78,7 +79,7 @@ private class sfcraft_Test_MockServer {
         HttpRequest req = getTestRequest();
         Integer expectedCode = FAILURE_CODE;
         // Setting server to return 400
-        server.setExpectedStatusCode(expectedCode);
+        server.setExpectedStatusCode(ENDPOINT, HTTP_METHOD, expectedCode);
         HttpResponse response = new Http().send(req);
         System.assertEquals(expectedCode, response.getStatusCode());
         System.assertEquals(FAIL_BODY.toResponseBody(), response.getBody());
@@ -103,6 +104,36 @@ private class sfcraft_Test_MockServer {
         new Http().send(getTestRequest());
 
         System.assert(isRequestAssertionCalled, 'Assertion was not called');
+    }
+
+    @isTest
+    private static void expectedResponseCodeIsOnlySetForSpecificEndpoint() {
+        sfcraft_MockServer.APIResource resource = new sfcraft_MockServer.APIResource(ENDPOINT);
+        resource.setResponse(HTTP_METHOD, FAILURE_CODE, FAIL_BODY);
+        sfcraft_MockServer.APIResource resource2 = new sfcraft_MockServer.APIResource(ENDPOINT2);
+        resource2.setResponse(HTTP_METHOD, SUCCESS_CODE, SUCCESS_BODY);
+        
+        sfcraft_MockServer server = new sfcraft_MockServer();
+        server.setAsMock();
+        server.addEndpoint(resource);
+        server.addEndpoint(resource2);
+
+        HttpRequest req = getTestRequest();
+        Integer expectedCode = FAILURE_CODE;
+        // Setting server to return 400
+        server.setExpectedStatusCode(ENDPOINT, HTTP_METHOD, expectedCode);
+        HttpResponse response = new Http().send(req);
+        System.assertEquals(expectedCode, response.getStatusCode());
+        System.assertEquals(FAIL_BODY.toResponseBody(), response.getBody());
+
+        response = new Http().send(req);
+        System.assertEquals(expectedCode, response.getStatusCode());
+        System.assertEquals(FAIL_BODY.toResponseBody(), response.getBody());
+        
+        req.setEndpoint(ENDPOINT2);
+        response = new Http().send(req);
+        System.assertEquals(SUCCESS_CODE, response.getStatusCode());
+        System.assertEquals(SUCCESS_BODY.toResponseBody(), response.getBody());
     }
 
     // Exceptions

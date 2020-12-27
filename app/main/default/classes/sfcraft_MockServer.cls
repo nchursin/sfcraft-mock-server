@@ -7,7 +7,78 @@ public with sharing class sfcraft_MockServer implements HttpCalloutMock {
     private static final String MSG_NO_MOCK_ENDPOINT = 'No API Resource found for endpoint: {0}';
 
     private Map<String, APIResource> endpointResourceMap;
-    private Integer expectedStatusCode;
+    private Map<String, Integer> expectedStatusCodes;
+
+    public sfcraft_MockServer() {
+        this.endpointResourceMap = new Map<String, APIResource>();
+        this.expectedStatusCodes = new Map<String, Integer>();
+    }
+
+    public void setAsMock() {
+        Test.setMock(HttpCalloutMock.class, this);
+    }
+
+    public HttpResponse respond(HttpRequest req) {
+        String endpoint = this.getCleanEndpoint(req.getEndpoint());
+        String method = req.getMethod();
+
+        APIResource resource = this.getAPIResource(endpoint);
+        resource.assertRequest(req);
+
+        Integer code = this.getStatusCode(endpoint);
+        HttpResponse response = resource.getResponse(method, code);
+        return response;
+    }
+
+    public void addEndpoint(APIResource res) {
+        endpointResourceMap.put(res.getEndpoint(), res);
+    }
+
+    public void setExpectedStatusCode(String endpoint, String httpMethod, Integer statusCode) {
+        this.expectedStatusCodes.put(endpoint, statusCode);
+    }
+
+    public APIResource getAPIResource(String endpoint) {
+        endpoint = this.getCleanEndpoint(endpoint);
+        if (!this.endpointResourceMap.containsKey(endpoint)) {
+            throw createMockException(MSG_NO_MOCK_ENDPOINT, endpoint);
+        }
+        return this.endpointResourceMap.get(endpoint);
+    }
+
+    private Integer getStatusCode(String endpoint) {
+        Integer result = this.expectedStatusCodes.get(endpoint);
+        if (null == result) {
+            result = 200;
+        }
+        return result;
+    }
+
+    private String getCleanEndpoint(String endpoint) {
+        return endpoint.substringBefore('?');
+    }
+
+    @TestVisible
+    private static sfcraft_MockServer.MockServerException createMockException(String message, String param1) {
+        return createMockException(message, new List<String> { param1 });
+    }
+
+    @TestVisible
+    private static sfcraft_MockServer.MockServerException createMockException(String message, String param1, String param2) {
+        return createMockException(message,
+            new List<String> {
+                param1,
+                param2
+            });
+    }
+
+    private static sfcraft_MockServer.MockServerException createMockException(String message, List<String> params) {
+        String expectedMessage = String.format(
+            message,
+            params
+        );
+        return new sfcraft_MockServer.MockServerException(expectedMessage);
+    }
 
     public interface HttpMockable {
         String toResponseBody();
@@ -51,15 +122,17 @@ public with sharing class sfcraft_MockServer implements HttpCalloutMock {
             methodResponseMap.put(statusCode, response);
         }
 
+        public void assertRequest(HttpRequest req) {
+            for (RequestAsserter assertion : this.assertions) {
+                assertion.assertRequest(req);
+            }
+        }
+
         public void addAssertion(RequestAsserter assertion) {
             if (null == assertion) {
                 return;
             }
             this.assertions.add(assertion);
-        }
-
-        public List<RequestAsserter> getAssertions() {
-            return this.assertions;
         }
 
         public HttpResponse getResponse(String method, Integer statusCode) {
@@ -73,64 +146,5 @@ public with sharing class sfcraft_MockServer implements HttpCalloutMock {
             }
             return result;
         }
-    }
-
-    public sfcraft_MockServer() {
-        this.endpointResourceMap = new Map<String, APIResource>();
-        this.expectedStatusCode = 200;
-    }
-
-    public void setAsMock() {
-        Test.setMock(HttpCalloutMock.class, this);
-    }
-
-    public HttpResponse respond(HttpRequest req) {
-        String endpoint = req.getEndpoint();
-        String method = req.getMethod();
-
-        APIResource resource = getAPIResource(endpoint);
-        for (RequestAsserter assertion : resource.getAssertions()) {
-            assertion.assertRequest(req);
-        }
-        HttpResponse response = resource.getResponse(method, this.expectedStatusCode);
-        return response;
-    }
-
-    public void addEndpoint(APIResource res) {
-        endpointResourceMap.put(res.getEndpoint(), res);
-    }
-
-    public void setExpectedStatusCode(Integer statusCode) {
-        this.expectedStatusCode = statusCode;
-    }
-
-    public APIResource getAPIResource(String endpoint) {
-        endpoint = endpoint.substringBefore('?');
-        if (!this.endpointResourceMap.containsKey(endpoint)) {
-            throw createMockException(MSG_NO_MOCK_ENDPOINT, endpoint);
-        }
-        return this.endpointResourceMap.get(endpoint);
-    }
-
-    @TestVisible
-    private static sfcraft_MockServer.MockServerException createMockException(String message, String param1) {
-        return createMockException(message, new List<String> { param1 });
-    }
-
-    @TestVisible
-    private static sfcraft_MockServer.MockServerException createMockException(String message, String param1, String param2) {
-        return createMockException(message,
-            new List<String> {
-                param1,
-                param2
-            });
-    }
-
-    private static sfcraft_MockServer.MockServerException createMockException(String message, List<String> params) {
-        String expectedMessage = String.format(
-            message,
-            params
-        );
-        return new sfcraft_MockServer.MockServerException(expectedMessage);
     }
 }
