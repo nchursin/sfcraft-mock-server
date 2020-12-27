@@ -126,11 +126,31 @@ private class sfcraft_Test_MockServer {
         System.assertEquals(expectedCode, response.getStatusCode());
         System.assertEquals(FAIL_BODY.toResponseBody(), response.getBody());
 
+        req.setEndpoint(ENDPOINT2);
         response = new Http().send(req);
+        System.assertEquals(SUCCESS_CODE, response.getStatusCode());
+        System.assertEquals(SUCCESS_BODY.toResponseBody(), response.getBody());
+    }
+
+    @isTest
+    private static void expectedResponseCodeIsOnlySetForSpecificHttpMethod() {
+        sfcraft_MockServer.APIResource resource = new sfcraft_MockServer.APIResource(ENDPOINT);
+        resource.setResponse('POST', FAILURE_CODE, FAIL_BODY);
+        resource.setResponse('GET', SUCCESS_CODE, SUCCESS_BODY);
+        
+        sfcraft_MockServer server = new sfcraft_MockServer();
+        server.setAsMock();
+        server.addEndpoint(resource);
+
+        HttpRequest req = getTestRequest();
+        Integer expectedCode = FAILURE_CODE;
+        // Setting server to return 400
+        server.setExpectedStatusCode(ENDPOINT, 'POST', expectedCode);
+        HttpResponse response = new Http().send(req);
         System.assertEquals(expectedCode, response.getStatusCode());
         System.assertEquals(FAIL_BODY.toResponseBody(), response.getBody());
-        
-        req.setEndpoint(ENDPOINT2);
+
+        req.setMethod('GET');
         response = new Http().send(req);
         System.assertEquals(SUCCESS_CODE, response.getStatusCode());
         System.assertEquals(SUCCESS_BODY.toResponseBody(), response.getBody());

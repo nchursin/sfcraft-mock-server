@@ -7,11 +7,11 @@ public with sharing class sfcraft_MockServer implements HttpCalloutMock {
     private static final String MSG_NO_MOCK_ENDPOINT = 'No API Resource found for endpoint: {0}';
 
     private Map<String, APIResource> endpointResourceMap;
-    private Map<String, Integer> expectedStatusCodes;
+    private Map<String, Map<String, Integer>> expectedStatusCodesByEndpointByMethod;
 
     public sfcraft_MockServer() {
         this.endpointResourceMap = new Map<String, APIResource>();
-        this.expectedStatusCodes = new Map<String, Integer>();
+        this.expectedStatusCodesByEndpointByMethod = new Map<String, Map<String, Integer>>();
     }
 
     public void setAsMock() {
@@ -25,7 +25,7 @@ public with sharing class sfcraft_MockServer implements HttpCalloutMock {
         APIResource resource = this.getAPIResource(endpoint);
         resource.assertRequest(req);
 
-        Integer code = this.getStatusCode(endpoint);
+        Integer code = this.getStatusCode(endpoint, req.getMethod());
         HttpResponse response = resource.getResponse(method, code);
         return response;
     }
@@ -35,7 +35,10 @@ public with sharing class sfcraft_MockServer implements HttpCalloutMock {
     }
 
     public void setExpectedStatusCode(String endpoint, String httpMethod, Integer statusCode) {
-        this.expectedStatusCodes.put(endpoint, statusCode);
+        if (!this.expectedStatusCodesByEndpointByMethod.containsKey(endpoint)) {
+            this.expectedStatusCodesByEndpointByMethod.put(endpoint, new Map<String, Integer>());
+        }
+        this.expectedStatusCodesByEndpointByMethod.get(endpoint).put(httpMethod, statusCode);
     }
 
     public APIResource getAPIResource(String endpoint) {
@@ -46,8 +49,8 @@ public with sharing class sfcraft_MockServer implements HttpCalloutMock {
         return this.endpointResourceMap.get(endpoint);
     }
 
-    private Integer getStatusCode(String endpoint) {
-        Integer result = this.expectedStatusCodes.get(endpoint);
+    private Integer getStatusCode(String endpoint, String httpMethod) {
+        Integer result = this.expectedStatusCodesByEndpointByMethod.get(endpoint)?.get(httpMethod);
         if (null == result) {
             result = 200;
         }
