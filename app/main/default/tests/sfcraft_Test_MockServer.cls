@@ -15,7 +15,7 @@ private class sfcraft_Test_MockServer {
     @isTest
     private static void howToAddSuccessResponseToTheServerUsingResponseClass() {
         // Create resourse. Resource is basically an endpoint on your real server
-        sfcraft_MockServer.APIResource resource = new sfcraft_MockServer.APIResource(ENDPOINT);
+        sfcraft_MockServer.APIResource resource = new sfcraft_MockServer.APIResource();
         // Setting up a success response.
         // SUCCESS_BODY is an instance of a response wrapper class
         // SUCCESS_CODE is 200, which is default
@@ -26,7 +26,7 @@ private class sfcraft_Test_MockServer {
         // Setting server as mock
         server.setAsMock();
         // Adding resource to server
-        server.addEndpoint(resource);
+        server.addEndpoint(ENDPOINT, resource);
 
         HttpRequest req = getTestRequest();
         Integer expectedCode = SUCCESS_CODE;
@@ -39,7 +39,7 @@ private class sfcraft_Test_MockServer {
     @isTest
     private static void howToAddSuccessResponseToTheServerUsingString() {
         // Create resourse. Resource is basically an endpoint on your real server
-        sfcraft_MockServer.APIResource resource = new sfcraft_MockServer.APIResource(ENDPOINT);
+        sfcraft_MockServer.APIResource resource = new sfcraft_MockServer.APIResource();
         // Setting up a success response.
         // SUCCESS_BODY is a string
         // SUCCESS_CODE is 200, which is default
@@ -50,7 +50,7 @@ private class sfcraft_Test_MockServer {
         // Setting server as mock
         server.setAsMock();
         // Adding resource to server
-        server.addEndpoint(resource);
+        server.addEndpoint(ENDPOINT, resource);
 
         HttpRequest req = getTestRequest();
         Integer expectedCode = SUCCESS_CODE;
@@ -63,7 +63,7 @@ private class sfcraft_Test_MockServer {
     @isTest
     private static void howToAddFailureResponseToTheServerUsingResponseClass() {
         // Create resourse. Resource is basically an endpoint on your real server
-        sfcraft_MockServer.APIResource resource = new sfcraft_MockServer.APIResource(ENDPOINT);
+        sfcraft_MockServer.APIResource resource = new sfcraft_MockServer.APIResource();
         // Setting up a sample failure response.
         // FAIL_BODY is an instance of a response wrapper class
         // SUCCESS_CODE is 400 in this example
@@ -74,7 +74,7 @@ private class sfcraft_Test_MockServer {
         // Setting server as mock
         server.setAsMock();
         // Adding resource to server
-        server.addEndpoint(resource);
+        server.addEndpoint(ENDPOINT, resource);
 
         HttpRequest req = getTestRequest();
         Integer expectedCode = FAILURE_CODE;
@@ -92,14 +92,14 @@ private class sfcraft_Test_MockServer {
 
     @isTest
     private static void howToAssertRequestReceivedByServer() {
-        sfcraft_MockServer.APIResource resource = new sfcraft_MockServer.APIResource(ENDPOINT);
+        sfcraft_MockServer.APIResource resource = new sfcraft_MockServer.APIResource();
         resource.setResponse(HTTP_METHOD, SUCCESS_CODE, SUCCESS_BODY);
         resource.addAssertion(new DemoRequestAssertion());
         resource.addAssertion(null);
         
         sfcraft_MockServer server = new sfcraft_MockServer();
         server.setAsMock();
-        server.addEndpoint(resource);
+        server.addEndpoint(ENDPOINT, resource);
 
         new Http().send(getTestRequest());
 
@@ -108,15 +108,15 @@ private class sfcraft_Test_MockServer {
 
     @isTest
     private static void expectedResponseCodeIsOnlySetForSpecificEndpoint() {
-        sfcraft_MockServer.APIResource resource = new sfcraft_MockServer.APIResource(ENDPOINT);
+        sfcraft_MockServer.APIResource resource = new sfcraft_MockServer.APIResource();
         resource.setResponse(HTTP_METHOD, FAILURE_CODE, FAIL_BODY);
-        sfcraft_MockServer.APIResource resource2 = new sfcraft_MockServer.APIResource(ENDPOINT2);
+        sfcraft_MockServer.APIResource resource2 = new sfcraft_MockServer.APIResource();
         resource2.setResponse(HTTP_METHOD, SUCCESS_CODE, SUCCESS_BODY);
         
         sfcraft_MockServer server = new sfcraft_MockServer();
         server.setAsMock();
-        server.addEndpoint(resource);
-        server.addEndpoint(resource2);
+        server.addEndpoint(ENDPOINT, resource);
+        server.addEndpoint(ENDPOINT2, resource2);
 
         HttpRequest req = getTestRequest();
         Integer expectedCode = FAILURE_CODE;
@@ -134,13 +134,13 @@ private class sfcraft_Test_MockServer {
 
     @isTest
     private static void expectedResponseCodeIsOnlySetForSpecificHttpMethod() {
-        sfcraft_MockServer.APIResource resource = new sfcraft_MockServer.APIResource(ENDPOINT);
+        sfcraft_MockServer.APIResource resource = new sfcraft_MockServer.APIResource();
         resource.setResponse('POST', FAILURE_CODE, FAIL_BODY);
         resource.setResponse('GET', SUCCESS_CODE, SUCCESS_BODY);
         
         sfcraft_MockServer server = new sfcraft_MockServer();
         server.setAsMock();
-        server.addEndpoint(resource);
+        server.addEndpoint(ENDPOINT, resource);
 
         HttpRequest req = getTestRequest();
         Integer expectedCode = FAILURE_CODE;
@@ -159,15 +159,19 @@ private class sfcraft_Test_MockServer {
     // Exceptions
     @isTest
     private static void ifNoResponseForStatusCode_ThenServerThrowsMockServerException() {
-        sfcraft_MockServer.APIResource resource = new sfcraft_MockServer.APIResource(ENDPOINT);
+        sfcraft_MockServer.APIResource resource = new sfcraft_MockServer.APIResource();
         resource.setResponse(HTTP_METHOD, FAILURE_CODE, SUCCESS_BODY);
         
         sfcraft_MockServer server = new sfcraft_MockServer();
-        server.addEndpoint(resource);
+        server.addEndpoint(ENDPOINT, resource);
 
         HttpRequest req = getTestRequest();
         Integer expectedCode = SUCCESS_CODE;
-        String expectedExceptionMessage = sfcraft_MockServer.createMockException(sfcraft_MockServer.MSG_NO_MOCK_FOR_CODE, ENDPOINT, String.valueOf(expectedCode)).getMessage();
+        sfcraft_MockServer.MockServerException expectedException = sfcraft_MockServer.createMockException(sfcraft_MockServer.MSG_NO_MOCK_FOR_CODE);
+        expectedException.setEndpoint(ENDPOINT);
+        expectedException.setStatusCode(expectedCode);
+        String expectedExceptionMessage = expectedException.getMessage();
+
         try {
             server.respond(req);
             System.assert(false, 'Exception expected');
@@ -178,13 +182,17 @@ private class sfcraft_Test_MockServer {
 
     @isTest
     private static void ifNoResponseForMethod_ThenServerThrowsMockServerException() {
-        sfcraft_MockServer.APIResource resource = new sfcraft_MockServer.APIResource(ENDPOINT);
+        sfcraft_MockServer.APIResource resource = new sfcraft_MockServer.APIResource();
         
         sfcraft_MockServer server = new sfcraft_MockServer();
-        server.addEndpoint(resource);
+        server.addEndpoint(ENDPOINT, resource);
 
         HttpRequest req = getTestRequest();
-        String expectedExceptionMessage = sfcraft_MockServer.createMockException(sfcraft_MockServer.MSG_NO_MOCK_FOR_METHOD, ENDPOINT, req.getMethod()).getMessage();
+        sfcraft_MockServer.MockServerException expectedException = sfcraft_MockServer.createMockException(sfcraft_MockServer.MSG_NO_MOCK_FOR_METHOD);
+        expectedException.setEndpoint(ENDPOINT);
+        expectedException.setHttpMethod(req.getMethod());
+        String expectedExceptionMessage = expectedException.getMessage();
+
         try {
             server.respond(req);
             System.assert(false, 'Exception expected');
@@ -195,14 +203,17 @@ private class sfcraft_Test_MockServer {
 
     @isTest
     private static void ifNoEndpointFound_ThenServerThrowsMockServerException() {
-        sfcraft_MockServer.APIResource resource = new sfcraft_MockServer.APIResource(ENDPOINT);
+        sfcraft_MockServer.APIResource resource = new sfcraft_MockServer.APIResource();
         
         sfcraft_MockServer server = new sfcraft_MockServer();
-        server.addEndpoint(resource);
+        server.addEndpoint(ENDPOINT, resource);
 
         HttpRequest req = getTestRequest();
         req.setEndpoint(ENDPOINT_NOT_FOUND);
-        String expectedExceptionMessage = sfcraft_MockServer.createMockException(sfcraft_MockServer.MSG_NO_MOCK_ENDPOINT, ENDPOINT_NOT_FOUND).getMessage();
+        sfcraft_MockServer.MockServerException expectedException = sfcraft_MockServer.createMockException(sfcraft_MockServer.MSG_NO_MOCK_ENDPOINT);
+        expectedException.setEndpoint(ENDPOINT_NOT_FOUND);
+        String expectedExceptionMessage = expectedException.getMessage();
+
         try {
             server.respond(req);
             System.assert(false, 'Exception expected');

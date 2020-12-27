@@ -22,29 +22,34 @@ public with sharing class sfcraft_MockServer implements HttpCalloutMock {
         String endpoint = this.getCleanEndpoint(req.getEndpoint());
         String method = req.getMethod();
 
-        APIResource resource = this.getAPIResource(endpoint);
-        resource.assertRequest(req);
+        try {
+            APIResource resource = this.getAPIResource(endpoint);
+            resource.assertRequest(req);
 
-        Integer code = this.getStatusCode(endpoint, req.getMethod());
-        HttpResponse response = resource.getResponse(method, code);
-        return response;
+            Integer code = this.getStatusCode(endpoint, req.getMethod());
+            HttpResponse response = resource.getResponse(method, code);
+            return response;
+        } catch (MockServerException ex) {
+            ex.setEndpoint(endpoint);
+            throw ex;
+        }
     }
 
-    public void addEndpoint(APIResource res) {
-        endpointResourceMap.put(res.getEndpoint(), res);
+    public void addEndpoint(String endpoint, APIResource res) {
+        endpointResourceMap.put(endpoint, res);
     }
 
     public void setExpectedStatusCode(String endpoint, String httpMethod, Integer statusCode) {
-        if (!this.expectedStatusCodesByEndpointByMethod.containsKey(endpoint)) {
-            this.expectedStatusCodesByEndpointByMethod.put(endpoint, new Map<String, Integer>());
-        }
+        ensureDefaultValueInMap(this.expectedStatusCodesByEndpointByMethod, endpoint, new Map<String, Integer>());
         this.expectedStatusCodesByEndpointByMethod.get(endpoint).put(httpMethod, statusCode);
     }
 
     public APIResource getAPIResource(String endpoint) {
         endpoint = this.getCleanEndpoint(endpoint);
         if (!this.endpointResourceMap.containsKey(endpoint)) {
-            throw createMockException(MSG_NO_MOCK_ENDPOINT, endpoint);
+            MockServerException ex = createMockException(MSG_NO_MOCK_ENDPOINT);
+            ex.setEndpoint(endpoint);
+            throw ex;
         }
         return this.endpointResourceMap.get(endpoint);
     }
@@ -75,12 +80,17 @@ public with sharing class sfcraft_MockServer implements HttpCalloutMock {
             });
     }
 
+    @TestVisible
+    private static sfcraft_MockServer.MockServerException createMockException(String message) {
+        return new sfcraft_MockServer.MockServerException(message);
+    }
+
     private static sfcraft_MockServer.MockServerException createMockException(String message, List<String> params) {
         String expectedMessage = String.format(
             message,
             params
         );
-        return new sfcraft_MockServer.MockServerException(expectedMessage);
+        return new sfcraft_MockServer.MockServerException(message);
     }
 
     public interface HttpMockable {
@@ -91,22 +101,37 @@ public with sharing class sfcraft_MockServer implements HttpCalloutMock {
         void assertRequest(HttpRequest req);
     }
 
-    public class MockServerException extends Exception {}
+    public class MockServerException extends Exception {
+        public void setEndpoint(String endpoint) {
+            this.setMessage(String.format(this.getMessage(), new List<String>{
+                endpoint,
+                '{1}'
+            }));
+        }
+
+        public void setStatusCode(Integer statusCode) {
+            this.setSecondParam(String.valueOf(statusCode));
+        }
+
+        public void setHttpMethod(String method) {
+            this.setSecondParam(method);
+        }
+
+        private void setSecondParam(String param) {
+            this.setMessage(String.format(this.getMessage(), new List<String>{
+                '{0}',
+                param
+            }));
+        }
+    }
 
     public class APIResource {
-        private String endpoint;
-
         private Map<String, Map<Integer, HttpResponse>> responseMap;
         private List<RequestAsserter> assertions;
 
-        public APIResource (String endpoint) {
-            this.endpoint = endpoint;
+        public APIResource () {
             this.responseMap = new Map<String, Map<Integer, HttpResponse>>();
             this.assertions = new List<RequestAsserter>();
-        }
-
-        public String getEndpoint() {
-            return this.endpoint;
         }
 
         public void setResponse(String method, Integer statusCode, HttpMockable responseBody) {
@@ -117,12 +142,8 @@ public with sharing class sfcraft_MockServer implements HttpCalloutMock {
             HttpResponse response = new HttpResponse();
             response.setBody(responseBody);
             response.setStatusCode(statusCode);
-            Map<Integer, HttpResponse> methodResponseMap = this.responseMap.get(method);
-            if (null == methodResponseMap) {
-                methodResponseMap = new Map<Integer, HttpResponse>();
-                this.responseMap.put(method, methodResponseMap);
-            }
-            methodResponseMap.put(statusCode, response);
+            ensureDefaultValueInMap(this.responseMap, method, new Map<Integer, HttpResponse>());
+            this.responseMap.get(method).put(statusCode, response);
         }
 
         public void assertRequest(HttpRequest req) {
@@ -141,13 +162,23 @@ public with sharing class sfcraft_MockServer implements HttpCalloutMock {
         public HttpResponse getResponse(String method, Integer statusCode) {
             Map<Integer, HttpResponse> methodResponseMap = this.responseMap.get(method);
             if (null == methodResponseMap) {
-                throw createMockException(MSG_NO_MOCK_FOR_METHOD, new List<String> { this.endpoint, method });
+                MockServerException ex = createMockException(MSG_NO_MOCK_FOR_METHOD);
+                ex.setHttpMethod(method);
+                throw ex;
             }
             HttpResponse result = methodResponseMap.get(statusCode);
             if (null == result) {
-                throw createMockException(MSG_NO_MOCK_FOR_CODE, this.endpoint, String.valueOf(statusCode));
+                MockServerException ex = createMockException(MSG_NO_MOCK_FOR_CODE);
+                ex.setStatusCode(statusCode);
+                throw ex;
             }
             return result;
+        }
+    }
+
+    private static void ensureDefaultValueInMap(Map<String, Object> theMap, String key, Object value) {
+        if (null == theMap.get(key)) {
+            theMap.put(key, value);
         }
     }
 }
