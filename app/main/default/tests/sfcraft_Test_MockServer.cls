@@ -168,7 +168,7 @@ private class sfcraft_Test_MockServer {
         HttpRequest req = getTestRequest();
         Integer expectedCode = SUCCESS_CODE;
         sfcraft_MockServer.MockServerException expectedException = sfcraft_MockServer.createMockException(sfcraft_MockServer.MSG_NO_MOCK_FOR_CODE);
-        expectedException.setEndpoint(ENDPOINT);
+        expectedException.setEndpoint(ENDPOINT + ENDPOINT_GET_PARAMS);
         expectedException.setStatusCode(expectedCode);
         String expectedExceptionMessage = expectedException.getMessage();
 
@@ -189,7 +189,7 @@ private class sfcraft_Test_MockServer {
 
         HttpRequest req = getTestRequest();
         sfcraft_MockServer.MockServerException expectedException = sfcraft_MockServer.createMockException(sfcraft_MockServer.MSG_NO_MOCK_FOR_METHOD);
-        expectedException.setEndpoint(ENDPOINT);
+        expectedException.setEndpoint(ENDPOINT + ENDPOINT_GET_PARAMS);
         expectedException.setHttpMethod(req.getMethod());
         String expectedExceptionMessage = expectedException.getMessage();
 
