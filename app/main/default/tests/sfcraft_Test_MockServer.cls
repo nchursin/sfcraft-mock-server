@@ -235,7 +235,7 @@ private class sfcraft_Test_MockServer {
         }
     }
 
-    private class DemoResponse implements sfcraft_MockServer.HttpMockable {
+    private class DemoResponse implements sfcraft_MockServer.MockableHttpResponse {
         public String status;
         public DemoResponse(String status) {
             this.status = status;

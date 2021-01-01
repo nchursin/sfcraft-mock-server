@@ -93,7 +93,7 @@ public with sharing class sfcraft_MockServer implements HttpCalloutMock {
         return new sfcraft_MockServer.MockServerException(message);
     }
 
-    public interface HttpMockable {
+    public interface MockableHttpResponse {
         String toResponseBody();
     }
 
@@ -134,7 +134,7 @@ public with sharing class sfcraft_MockServer implements HttpCalloutMock {
             this.assertions = new List<RequestAsserter>();
         }
 
-        public void setResponse(String method, Integer statusCode, HttpMockable responseBody) {
+        public void setResponse(String method, Integer statusCode, MockableHttpResponse responseBody) {
             this.setResponse(method, statusCode, responseBody.toResponseBody());
         }
 
