@@ -37,8 +37,10 @@ public with sharing class sfcraft_MockServer implements HttpCalloutMock {
     private ServerEndpointResource getServerResource(String endpoint) {
         endpoint = this.getCleanEndpoint(endpoint);
         if (!this.endpointResourceMap.containsKey(endpoint)) {
-            MockServerException ex = createMockException(MSG_NO_MOCK_ENDPOINT);
-            ex.setEndpoint(endpoint);
+            sfcraft_MockServerException ex = new sfcraft_MockServerException.Factory()
+                .setMessage(sfcraft_MockServerException.MSG_NO_MOCK_ENDPOINT)
+                .setEndpoint(endpoint)
+                .build();
             throw ex;
         }
         return this.endpointResourceMap.get(endpoint);
@@ -60,33 +62,6 @@ public with sharing class sfcraft_MockServer implements HttpCalloutMock {
         return endpoint.substringBefore('?');
     }
 
-    @TestVisible
-    private static sfcraft_MockServer.MockServerException createMockException(String message, String param1) {
-        return createMockException(message, new List<String> { param1 });
-    }
-
-    @TestVisible
-    private static sfcraft_MockServer.MockServerException createMockException(String message, String param1, String param2) {
-        return createMockException(message,
-            new List<String> {
-                param1,
-                param2
-            });
-    }
-
-    @TestVisible
-    private static sfcraft_MockServer.MockServerException createMockException(String message) {
-        return new sfcraft_MockServer.MockServerException(message);
-    }
-
-    private static sfcraft_MockServer.MockServerException createMockException(String message, List<String> params) {
-        String expectedMessage = String.format(
-            message,
-            params
-        );
-        return new sfcraft_MockServer.MockServerException(message);
-    }
-
     private static void ensureDefaultValueInMap(Map<String, Object> theMap, String key, Object value) {
         if (null == theMap.get(key)) {
             theMap.put(key, value);
@@ -99,30 +74,6 @@ public with sharing class sfcraft_MockServer implements HttpCalloutMock {
 
     public interface RequestAsserter {
         void assertRequest(HttpRequest req);
-    }
-
-    public class MockServerException extends Exception {
-        public void setEndpoint(String endpoint) {
-            this.setMessage(String.format(this.getMessage(), new List<String>{
-                endpoint,
-                '{1}'
-            }));
-        }
-
-        public void setStatusCode(Integer statusCode) {
-            this.setSecondParam(String.valueOf(statusCode));
-        }
-
-        public void setHttpMethod(String method) {
-            this.setSecondParam(method);
-        }
-
-        private void setSecondParam(String param) {
-            this.setMessage(String.format(this.getMessage(), new List<String>{
-                '{0}',
-                param
-            }));
-        }
     }
 
     public class APIResource {
@@ -162,14 +113,18 @@ public with sharing class sfcraft_MockServer implements HttpCalloutMock {
         public HttpResponse getResponse(String method, Integer statusCode) {
             Map<Integer, HttpResponse> methodResponseMap = this.responseMap.get(method);
             if (null == methodResponseMap) {
-                MockServerException ex = createMockException(MSG_NO_MOCK_FOR_METHOD);
-                ex.setHttpMethod(method);
+                sfcraft_MockServerException ex = new sfcraft_MockServerException.Factory()
+                    .setMessage(sfcraft_MockServerException.MSG_NO_MOCK_FOR_METHOD)
+                    .setHttpMethod(method)
+                    .build();
                 throw ex;
             }
             HttpResponse result = methodResponseMap.get(statusCode);
             if (null == result) {
-                MockServerException ex = createMockException(MSG_NO_MOCK_FOR_CODE);
-                ex.setStatusCode(statusCode);
+                sfcraft_MockServerException ex = new sfcraft_MockServerException.Factory()
+                    .setMessage(sfcraft_MockServerException.MSG_NO_MOCK_FOR_CODE)
+                    .setCode(statusCode)
+                    .build();
                 throw ex;
             }
             return result;
@@ -210,8 +165,12 @@ public with sharing class sfcraft_MockServer implements HttpCalloutMock {
                 Integer code = this.getResponseCode(req.getMethod());
                 HttpResponse response = resource.getResponse(method, code);
                 return response;
-            } catch (MockServerException ex) {
-                ex.setEndpoint(req.getEndpoint());
+            } catch (sfcraft_MockServerException ex) {
+                sfcraft_MockServerException newEx = new sfcraft_MockServerException.Factory()
+                    .setMessage(ex.getMessage())
+                    .setEndpoint(req.getEndpoint())
+                    .build();
+                ex.setMessage(newEx.getMessage());
                 throw ex;
             }
         }

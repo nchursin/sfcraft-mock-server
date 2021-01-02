@@ -14,17 +14,17 @@ private class sfcraft_MockServer_ExceptionsSpec {
 
         HttpRequest req = sfcraft_MockServerTestUtils.getTestRequest();
         Integer expectedCode = sfcraft_MockServerTestUtils.SUCCESS_CODE;
-        sfcraft_MockServer.MockServerException expectedException = sfcraft_MockServer.createMockException(sfcraft_MockServer.MSG_NO_MOCK_FOR_CODE);
-        expectedException.setEndpoint(
-            sfcraft_MockServerTestUtils.ENDPOINT + sfcraft_MockServerTestUtils.ENDPOINT_GET_PARAMS
-        );
-        expectedException.setStatusCode(expectedCode);
+        sfcraft_MockServerException expectedException = new sfcraft_MockServerException.Factory()
+            .setMessage(sfcraft_MockServerException.MSG_NO_MOCK_FOR_CODE)
+            .setEndpoint(req.getEndpoint())
+            .setCode(expectedCode)
+            .build();
         String expectedExceptionMessage = expectedException.getMessage();
 
         try {
             server.respond(req);
             System.assert(false, 'Exception expected');
-        } catch (sfcraft_MockServer.MockServerException ex) {
+        } catch (sfcraft_MockServerException ex) {
             System.assertEquals(expectedExceptionMessage, ex.getMessage(), 'Another exception message expected');
         }
     }
@@ -37,17 +37,18 @@ private class sfcraft_MockServer_ExceptionsSpec {
         server.addEndpoint(sfcraft_MockServerTestUtils.ENDPOINT, resource);
 
         HttpRequest req = sfcraft_MockServerTestUtils.getTestRequest();
-        sfcraft_MockServer.MockServerException expectedException = sfcraft_MockServer.createMockException(sfcraft_MockServer.MSG_NO_MOCK_FOR_METHOD);
-        expectedException.setEndpoint(
-            sfcraft_MockServerTestUtils.ENDPOINT + sfcraft_MockServerTestUtils.ENDPOINT_GET_PARAMS
-        );
-        expectedException.setHttpMethod(req.getMethod());
+
+        sfcraft_MockServerException expectedException = new sfcraft_MockServerException.Factory()
+            .setMessage(sfcraft_MockServerException.MSG_NO_MOCK_FOR_METHOD)
+            .setEndpoint(req.getEndpoint())
+            .setHttpMethod(req.getMethod())
+            .build();
         String expectedExceptionMessage = expectedException.getMessage();
 
         try {
             server.respond(req);
             System.assert(false, 'Exception expected');
-        } catch (sfcraft_MockServer.MockServerException ex) {
+        } catch (sfcraft_MockServerException ex) {
             System.assertEquals(expectedExceptionMessage, ex.getMessage(), 'Another exception message expected');
         }
     }
@@ -61,15 +62,17 @@ private class sfcraft_MockServer_ExceptionsSpec {
 
         HttpRequest req = sfcraft_MockServerTestUtils.getTestRequest();
         req.setEndpoint(sfcraft_MockServerTestUtils.ENDPOINT_NOT_FOUND);
-        sfcraft_MockServer.MockServerException expectedException =
-            sfcraft_MockServer.createMockException(sfcraft_MockServer.MSG_NO_MOCK_ENDPOINT);
-        expectedException.setEndpoint(sfcraft_MockServerTestUtils.ENDPOINT_NOT_FOUND);
+
+        sfcraft_MockServerException expectedException = new sfcraft_MockServerException.Factory()
+            .setMessage(sfcraft_MockServerException.MSG_NO_MOCK_ENDPOINT)
+            .setEndpoint(req.getEndpoint())
+            .build();
         String expectedExceptionMessage = expectedException.getMessage();
 
         try {
             server.respond(req);
             System.assert(false, 'Exception expected');
-        } catch (sfcraft_MockServer.MockServerException ex) {
+        } catch (sfcraft_MockServerException ex) {
             System.assertEquals(expectedExceptionMessage, ex.getMessage(), 'Another exception message expected');
         }
     }
