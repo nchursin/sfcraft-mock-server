@@ -17,8 +17,4 @@ The mock server framework consists of the following parts:
 
 ### Example info
 
-For usage examples take a look at the [`MockServer` test class](../master/app/main/mockServer/tests/Test_MockServer.cls).
-
-Specifically look at methods:
-* `howToAddResourceToServerUsingResponseClass` for example of basic usage
-* `howToAssertRequestReceivedByServer` for example of how to assert request
+For usage examples take a look at the [`sfcraft_MockServer_Examples` test class](../master/app/main/mockServer/tests/sfcraft_MockServer_Examples.cls).
