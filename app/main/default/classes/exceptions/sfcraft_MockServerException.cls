@@ -19,28 +19,6 @@ public class sfcraft_MockServerException extends Exception {
         'No status code ' + PLACEHOLDER_CODE + ' found for the endpoint: ' + PLACEHOLDER_ENDPOINT;
     public static final String MSG_NO_MOCK_ENDPOINT = 'No API Resource found for endpoint: ' +  + PLACEHOLDER_ENDPOINT;
 
-    public void setEndpoint(String endpoint) {
-        this.setMessage(String.format(this.getMessage(), new List<String>{
-            endpoint,
-            '{1}'
-        }));
-    }
-
-    public void setStatusCode(Integer statusCode) {
-        this.setSecondParam(String.valueOf(statusCode));
-    }
-
-    public void setHttpMethod(String method) {
-        this.setSecondParam(method);
-    }
-
-    private void setSecondParam(String param) {
-        this.setMessage(String.format(this.getMessage(), new List<String>{
-            '{0}',
-            param
-        }));
-    }
-
     public class Factory {
         private String message;
         private String endpoint;

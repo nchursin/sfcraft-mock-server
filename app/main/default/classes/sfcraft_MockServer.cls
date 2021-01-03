@@ -1,3 +1,4 @@
+@isTest
 public class sfcraft_MockServer implements HttpCalloutMock {
     private Map<String, sfcraft_ServerEndpointResource> endpointResourceMap;
 

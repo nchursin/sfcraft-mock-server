@@ -1,3 +1,4 @@
+@isTest
 public class sfcraft_MockAPIResource {
     private Map<String, Map<Integer, HttpResponse>> responseMap;
     private List<sfcraft_RequestAsserter> assertions;

@@ -1,3 +1,4 @@
+@isTest
 public class sfcraft_ServerEndpointResource {
     private String endpoint;
     private sfcraft_MockAPIResource resource;
@@ -5,7 +6,8 @@ public class sfcraft_ServerEndpointResource {
     private Map<String, Integer> responseCodeMap;
     private Map<String, List<Integer>> responseCodeQueueMap;
 
-    public sfcraft_ServerEndpointResource(String endpoint, sfcraft_MockAPIResource resource) {
+    @TestVisible
+    private sfcraft_ServerEndpointResource(String endpoint, sfcraft_MockAPIResource resource) {
         this.endpoint = endpoint;
         this.resource = resource;
         this.responseCodeMap = new Map<String, Integer>();
