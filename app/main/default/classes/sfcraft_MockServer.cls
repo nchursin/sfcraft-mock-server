@@ -19,10 +19,6 @@ public class sfcraft_MockServer implements HttpCalloutMock {
         this.endpointResourceMap.put(endpoint, resourceToPut);
     }
 
-    public void setExpectedStatusCode(String endpoint, String httpMethod, Integer statusCode) {
-        this.getServerResource(endpoint).respondWith(httpMethod, statusCode);
-    }
-
     public sfcraft_ServerEndpointResource getServerResource(String endpoint) {
         endpoint = this.getCleanEndpoint(endpoint);
         if (!this.endpointResourceMap.containsKey(endpoint)) {

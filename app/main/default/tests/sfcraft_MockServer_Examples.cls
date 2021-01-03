@@ -84,11 +84,9 @@ private class sfcraft_MockServer_Examples {
         HttpRequest req = sfcraft_MockServerTestUtils.getTestRequest();
         Integer expectedCode = sfcraft_MockServerTestUtils.FAILURE_CODE;
         // Setting server to return 400
-        server.setExpectedStatusCode(
-            sfcraft_MockServerTestUtils.ENDPOINT,
-            sfcraft_MockServerTestUtils.HTTP_METHOD,
-            expectedCode
-        );
+        server
+            .getServerResource(sfcraft_MockServerTestUtils.ENDPOINT)
+            .respondWith(sfcraft_MockServerTestUtils.HTTP_METHOD, expectedCode);
         HttpResponse response = new Http().send(req);
         System.assertEquals(expectedCode, response.getStatusCode());
         System.assertEquals(sfcraft_MockServerTestUtils.FAIL_BODY.toResponseBody(), response.getBody());
@@ -142,11 +140,9 @@ private class sfcraft_MockServer_Examples {
         HttpRequest req = sfcraft_MockServerTestUtils.getTestRequest();
         Integer expectedCode = sfcraft_MockServerTestUtils.FAILURE_CODE;
         // Setting server to return 400
-        server.setExpectedStatusCode(
-            sfcraft_MockServerTestUtils.ENDPOINT,
-            sfcraft_MockServerTestUtils.HTTP_METHOD,
-            expectedCode
-        );
+        server
+            .getServerResource(sfcraft_MockServerTestUtils.ENDPOINT)
+            .respondWith(sfcraft_MockServerTestUtils.HTTP_METHOD, expectedCode);
         HttpResponse response = new Http().send(req);
         System.assertEquals(expectedCode, response.getStatusCode());
         System.assertEquals(sfcraft_MockServerTestUtils.FAIL_BODY.toResponseBody(), response.getBody());
@@ -178,7 +174,9 @@ private class sfcraft_MockServer_Examples {
         HttpRequest req = sfcraft_MockServerTestUtils.getTestRequest();
         Integer expectedCode = sfcraft_MockServerTestUtils.FAILURE_CODE;
         // Setting server to return 400
-        server.setExpectedStatusCode(sfcraft_MockServerTestUtils.ENDPOINT, 'POST', expectedCode);
+        server
+            .getServerResource(sfcraft_MockServerTestUtils.ENDPOINT)
+            .respondWith('POST', expectedCode);
         HttpResponse response = new Http().send(req);
         System.assertEquals(expectedCode, response.getStatusCode());
         System.assertEquals(sfcraft_MockServerTestUtils.FAIL_BODY.toResponseBody(), response.getBody());
