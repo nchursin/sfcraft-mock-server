@@ -15,7 +15,7 @@ public class sfcraft_MockAPIResource {
         HttpResponse response = new HttpResponse();
         response.setBody(responseBody);
         response.setStatusCode(statusCode);
-        sfcraft_MockServerUtils.ensureDefaultValueInMap(this.responseMap, method, new Map<Integer, HttpResponse>());
+        ensureDefaultValueInMap(this.responseMap, method, new Map<Integer, HttpResponse>());
         this.responseMap.get(method).put(statusCode, response);
     }
 
@@ -50,5 +50,11 @@ public class sfcraft_MockAPIResource {
             throw ex;
         }
         return result;
+    }
+
+    private static void ensureDefaultValueInMap(Map<String, Object> theMap, String key, Object value) {
+        if (null == theMap.get(key)) {
+            theMap.put(key, value);
+        }
     }
 }

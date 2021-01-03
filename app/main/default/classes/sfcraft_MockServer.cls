@@ -7,11 +7,9 @@ public with sharing class sfcraft_MockServer implements HttpCalloutMock {
     private static final String MSG_NO_MOCK_ENDPOINT = 'No API Resource found for endpoint: {0}';
 
     private Map<String, ServerEndpointResource> endpointResourceMap;
-    private Map<String, Map<String, Integer>> expectedStatusCodesByEndpointByMethod;
 
     public sfcraft_MockServer() {
         this.endpointResourceMap = new Map<String, ServerEndpointResource>();
-        this.expectedStatusCodesByEndpointByMethod = new Map<String, Map<String, Integer>>();
     }
 
     public void setAsMock() {
@@ -29,12 +27,6 @@ public with sharing class sfcraft_MockServer implements HttpCalloutMock {
     }
 
     public void setExpectedStatusCode(String endpoint, String httpMethod, Integer statusCode) {
-        sfcraft_MockServerUtils.ensureDefaultValueInMap(
-            this.expectedStatusCodesByEndpointByMethod,
-            endpoint,
-            new Map<String, Integer>()
-        );
-        this.expectedStatusCodesByEndpointByMethod.get(endpoint).put(httpMethod, statusCode);
         this.getServerResource(endpoint).respondWith(httpMethod, statusCode);
     }
 
@@ -52,14 +44,6 @@ public with sharing class sfcraft_MockServer implements HttpCalloutMock {
 
     public sfcraft_MockAPIResource getAPIResource(String endpoint) {
         return this.getServerResource(endpoint).getAPIResource();
-    }
-
-    private Integer getStatusCode(String endpoint, String httpMethod) {
-        Integer result = this.expectedStatusCodesByEndpointByMethod.get(endpoint)?.get(httpMethod);
-        if (null == result) {
-            result = 200;
-        }
-        return result;
     }
 
     private String getCleanEndpoint(String endpoint) {
