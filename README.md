@@ -7,6 +7,8 @@
 
 Mock server is an implementation of `HttpCalloutMock` which can help you make your mocks more organized.
 
+## What's inside
+
 The mock server framework consists of the following main parts:
 
 1. `sfcraft_MockServer` class - the actual mock server.
@@ -16,9 +18,128 @@ The mock server framework consists of the following main parts:
 1. `sfcraft_MockableHttpResponse` interface - implement it by class that represents you server response. E.g. you parse body into a class `ServerResponseBody`. Then you need to implement the `sfcraft_MockableHttpResponse` by it to be teach the `sfcraft_MockServer` to respond with it.
 1. `sfcraft_MockServerException` - exception that is thrown by `sfcraft_MockServer` in case something went wrong, e.g. misconfiguration.
 
-### Example info
+## How to use it
 
-#### Basic usage
+### Creating a resource
+
+First instantiate a new API resource
+
+```java
+sfcraft_MockAPIResource resource = new sfcraft_MockAPIResource();
+```
+
+Then you can add responses to it. To add a response you need to provide method, code, and response body.
+
+```java
+// Successful POST response
+resource.setResponse(
+            'POST',
+            200,
+            successResponseObject
+        );
+
+// Failed GET response
+resource.setResponse(
+            'POST',
+            405,
+            failResponseObject
+        );
+```
+
+You can provide either response objects to set response:
+```java
+    public class DemoResponse implements sfcraft_MockableHttpResponse {
+        public String toResponseBody() {
+            return JSON.serialize(this);
+        }
+    }
+
+    ...
+
+    resource.setResponse(
+        'POST',
+        200,
+        new DemoResponse()
+    );
+```
+or plain strings
+```java
+resource.setResponse(
+        'POST',
+        200,
+        'status: ok'
+    );
+```
+
+### Asserting requests
+You can validate that request is built correctly. This might be helpful to test headers, e.g. `Authorization`, `Content-Type`, etc. To preform assertiong on the request you need to implement a `sfcraft_RequestAsserter` interface. Here's a sample of an assertion that checks `Content-Type` header.
+
+```java
+private class ContentTypeAssertion implements sfcraft_RequestAsserter {
+    private String expectedContentType;
+    public ContentTypeAssertion(String expectedContentType) {
+        this.expectedContentType = expectedContentType;
+    }
+
+    public void assertRequest(HttpRequest req) {
+        String contentType = req.getHeader('Content-Type');
+        System.assert(String.isNotBlank(), 'Content-Type header is not set')
+        System.assertEquals(this.expectedContentType, contentType, 'Content-Type is different from expected');
+    }
+}
+```
+
+Then you need to add these assertions to a resource:
+```java
+sfcraft_MockAPIResource resource = new sfcraft_MockAPIResource();
+resource.addAssertion(new ContentTypeJsonAssertion('application/json'));
+```
+
+You can add as many assertions as you want. They are executed in the order you add them.
+
+```java
+sfcraft_MockAPIResource resource = new sfcraft_MockAPIResource();
+resource.addAssertion(new AuthorizationAssertion());
+resource.addAssertion(new ContentTypeJsonAssertion('application/json'));
+resource.addAssertion(new BodyParamsAssertion());
+resource.addAssertion(new SomeOtherAssertion());
+```
+
+## Creating server
+
+After you defined resources it's time to create a server. Server constructor takes no params. Also, you can set it as a mock right away:
+
+```java
+// Instantiating a server
+sfcraft_MockServer server = new sfcraft_MockServer();
+// Setting server as mock
+server.setAsMock();
+```
+
+Then you need to add resources to endpoints:
+```java
+server.addEndpoint('http://example.com', rootResource);
+server.addEndpoint('http://example.com/users', usersResource);
+```
+
+By default they all will respond with provided 200 responses. You need explicitly ask server to respond differently:
+
+```java
+server.getServerResource('http://example.com').respondWith(400);
+```
+
+Resource attached to the endpoint must have the asked for status code. Otherwise you'll get a MockServerException.
+
+You can also chain response codes:
+```java
+server.getServerResource('http://example.com')
+    .respondOnceWith(400)
+    .respondOnceWith(500)
+    .respondWith(200);
+```
+You can omit `.respondWith(200)`. The resource will fallback to code 200 in case it runs out of overrides.
+
+## Simple 200 response test
 
 ```java
 @isTest
