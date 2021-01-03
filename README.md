@@ -7,17 +7,6 @@
 
 Mock server is an implementation of `HttpCalloutMock` which can help you make your mocks more organized.
 
-## What's inside
-
-The mock server framework consists of the following main parts:
-
-1. `sfcraft_MockServer` class - the actual mock server.
-1. `sfcraft_MockAPIResource` class - a class which actually represents a single resource that has handles responses. Not attached to a specific endpoint.
-1. `sfcraft_ServerEndpointResource` class - a class which actually represents a connection between API resource and endpoint. Dictates which code should a resource respond with. So you can have a single resource with the same responses, but different behavoiur in terms of endpoint and response codes.
-1. `sfcraft_RequestAsserter` interface - implement it and add to a resource to run assertion "on server side".
-1. `sfcraft_MockableHttpResponse` interface - implement it by class that represents you server response. E.g. you parse body into a class `ServerResponseBody`. Then you need to implement the `sfcraft_MockableHttpResponse` by it to be teach the `sfcraft_MockServer` to respond with it.
-1. `sfcraft_MockServerException` - exception that is thrown by `sfcraft_MockServer` in case something went wrong, e.g. misconfiguration.
-
 ## How to use it
 
 ### Creating a resource
@@ -189,3 +178,15 @@ private class BasicUsage {
 ```
 
 For more usage examples take a look at the test classes. The lib is developed via TDD, which makes tests behave as specs.
+## What's inside
+
+The mock server framework consists of the following main parts:
+
+1. `sfcraft_MockServer` class - the actual mock server.
+1. `sfcraft_MockAPIResource` class - a class which actually represents a single resource that has handles responses. Not attached to a specific endpoint.
+1. `sfcraft_ServerEndpointResource` class - a class which actually represents a connection between API resource and endpoint. Dictates which code should a resource respond with. So you can have a single resource with the same responses, but different behavoiur in terms of endpoint and response codes.
+1. `sfcraft_RequestAsserter` interface - implement it and add to a resource to run assertion "on server side".
+1. `sfcraft_MockableHttpResponse` interface - implement it by class that represents you server response. E.g. you parse body into a class `ServerResponseBody`. Then you need to implement the `sfcraft_MockableHttpResponse` by it to be teach the `sfcraft_MockServer` to respond with it.
+1. `sfcraft_MockServerException` - exception that is thrown by `sfcraft_MockServer` in case something went wrong, e.g. misconfiguration.
+
+All classes except Exception are marked as isTest. It is only used once actually to allow MockServer construct sfcraft_ServerEndpointResource without exposing its constructor. Just not to encourage peopl to construct those themselves. They are of no use outside the server as far as I'm concerned
