@@ -32,10 +32,6 @@ public class sfcraft_MockServer implements HttpCalloutMock {
         return this.endpointResourceMap.get(endpoint);
     }
 
-    public sfcraft_MockAPIResource getAPIResource(String endpoint) {
-        return this.getServerResource(endpoint).getAPIResource();
-    }
-
     private String getCleanEndpoint(String endpoint) {
         return endpoint.substringBefore('?');
     }
