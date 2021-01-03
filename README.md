@@ -9,6 +9,40 @@ Mock server is an implementation of `HttpCalloutMock` which can help you make yo
 
 ## How to use it
 
+## Creating server
+
+Server constructor takes no params. Also, you can set it as a mock right away:
+
+```java
+// Instantiating a server
+sfcraft_MockServer server = new sfcraft_MockServer();
+// Setting server as mock
+server.setAsMock();
+```
+
+Then you need to add resources to endpoints (see below on how to create resources):
+```java
+server.addEndpoint('http://example.com', rootResource);
+server.addEndpoint('http://example.com/users', usersResource);
+```
+
+By default they all will respond with provided 200 responses. You need explicitly ask server to respond differently:
+
+```java
+server.getServerResource('http://example.com').respondWith(400);
+```
+
+Resource attached to the endpoint must have the asked for status code. Otherwise you'll get a MockServerException.
+
+You can also chain response codes:
+```java
+server.getServerResource('http://example.com')
+    .respondOnceWith(400)
+    .respondOnceWith(500)
+    .respondWith(200);
+```
+You can omit `.respondWith(200)`. The resource will fallback to code 200 in case it runs out of overrides.
+
 ### Creating a resource
 
 First instantiate a new API resource
@@ -93,40 +127,6 @@ resource.addAssertion(new ContentTypeJsonAssertion('application/json'));
 resource.addAssertion(new BodyParamsAssertion());
 resource.addAssertion(new SomeOtherAssertion());
 ```
-
-## Creating server
-
-After you defined resources it's time to create a server. Server constructor takes no params. Also, you can set it as a mock right away:
-
-```java
-// Instantiating a server
-sfcraft_MockServer server = new sfcraft_MockServer();
-// Setting server as mock
-server.setAsMock();
-```
-
-Then you need to add resources to endpoints:
-```java
-server.addEndpoint('http://example.com', rootResource);
-server.addEndpoint('http://example.com/users', usersResource);
-```
-
-By default they all will respond with provided 200 responses. You need explicitly ask server to respond differently:
-
-```java
-server.getServerResource('http://example.com').respondWith(400);
-```
-
-Resource attached to the endpoint must have the asked for status code. Otherwise you'll get a MockServerException.
-
-You can also chain response codes:
-```java
-server.getServerResource('http://example.com')
-    .respondOnceWith(400)
-    .respondOnceWith(500)
-    .respondWith(200);
-```
-You can omit `.respondWith(200)`. The resource will fallback to code 200 in case it runs out of overrides.
 
 ## Simple 200 response test
 
