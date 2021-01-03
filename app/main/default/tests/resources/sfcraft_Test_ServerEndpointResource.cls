@@ -58,6 +58,26 @@ private class sfcraft_Test_ServerEndpointResource {
         System.assertEquals(202, codeCalled, 'Unexpected code called');
     }
 
+    @isTest
+    private static void testGetResponse_SetResponseCodeOnceButDoNotSetDefault_ShouldDefaultTo200() {
+        String endpoint = 'http://endpoint';
+        sfcraft_MockAPIResource apiResource =
+            (sfcraft_MockAPIResource) Test.createStub(sfcraft_MockAPIResource.class, new MockAPIResource_Stub());
+        sfcraft_ServerEndpointResource actualResource = new sfcraft_ServerEndpointResource(endpoint, apiResource);
+        actualResource
+            .respondOnceWith('GET', 400)
+            .respondOnceWith('GET', 500);
+        HttpRequest req = new HttpRequest();
+        req.setMethod('GET');
+
+        actualResource.getResponse(req);
+        System.assertEquals(400, codeCalled, 'Unexpected code called');
+        actualResource.getResponse(req);
+        System.assertEquals(500, codeCalled, 'Unexpected code called');
+        actualResource.getResponse(req);
+        System.assertEquals(200, codeCalled, 'Unexpected code called');
+    }
+
     private class MockAPIResource_Stub implements StubProvider {
         public Object handleMethodCall(Object stubbedObject,
             String stubbedMethodName,
