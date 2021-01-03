@@ -1,4 +1,4 @@
-# Salesforce Craft Mock Server
+# SalesforceCraft Http Mock Server
 
 <a href="https://githubsfdeploy.herokuapp.com?owner=nchursin&repo=sfcraft-mock-server&ref=master">
   <img alt="Deploy to Salesforce"
