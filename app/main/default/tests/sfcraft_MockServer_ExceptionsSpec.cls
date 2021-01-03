@@ -2,7 +2,7 @@
 private class sfcraft_MockServer_ExceptionsSpec {
     @isTest
     private static void ifNoResponseForStatusCode_ThenServerThrowsMockServerException() {
-        sfcraft_MockServer.APIResource resource = new sfcraft_MockServer.APIResource();
+        sfcraft_MockAPIResource resource = new sfcraft_MockAPIResource();
         resource.setResponse(
             sfcraft_MockServerTestUtils.HTTP_METHOD,
             sfcraft_MockServerTestUtils.FAILURE_CODE,
@@ -31,7 +31,7 @@ private class sfcraft_MockServer_ExceptionsSpec {
 
     @isTest
     private static void ifNoResponseForMethod_ThenServerThrowsMockServerException() {
-        sfcraft_MockServer.APIResource resource = new sfcraft_MockServer.APIResource();
+        sfcraft_MockAPIResource resource = new sfcraft_MockAPIResource();
         
         sfcraft_MockServer server = new sfcraft_MockServer();
         server.addEndpoint(sfcraft_MockServerTestUtils.ENDPOINT, resource);
@@ -55,7 +55,7 @@ private class sfcraft_MockServer_ExceptionsSpec {
 
     @isTest
     private static void ifNoEndpointFound_ThenServerThrowsMockServerException() {
-        sfcraft_MockServer.APIResource resource = new sfcraft_MockServer.APIResource();
+        sfcraft_MockAPIResource resource = new sfcraft_MockAPIResource();
         
         sfcraft_MockServer server = new sfcraft_MockServer();
         server.addEndpoint(sfcraft_MockServerTestUtils.ENDPOINT, resource);

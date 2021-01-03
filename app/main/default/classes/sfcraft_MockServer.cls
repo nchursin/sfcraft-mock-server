@@ -23,13 +23,17 @@ public with sharing class sfcraft_MockServer implements HttpCalloutMock {
         return this.getServerResource(endpoint).getResponse(req);
     }
 
-    public void addEndpoint(String endpoint, APIResource res) {
+    public void addEndpoint(String endpoint, sfcraft_MockAPIResource res) {
         ServerEndpointResource resourceToPut = new ServerEndpointResource(endpoint, res);
         this.endpointResourceMap.put(endpoint, resourceToPut);
     }
 
     public void setExpectedStatusCode(String endpoint, String httpMethod, Integer statusCode) {
-        ensureDefaultValueInMap(this.expectedStatusCodesByEndpointByMethod, endpoint, new Map<String, Integer>());
+        sfcraft_MockServerUtils.ensureDefaultValueInMap(
+            this.expectedStatusCodesByEndpointByMethod,
+            endpoint,
+            new Map<String, Integer>()
+        );
         this.expectedStatusCodesByEndpointByMethod.get(endpoint).put(httpMethod, statusCode);
         this.getServerResource(endpoint).respondWith(httpMethod, statusCode);
     }
@@ -46,7 +50,7 @@ public with sharing class sfcraft_MockServer implements HttpCalloutMock {
         return this.endpointResourceMap.get(endpoint);
     }
 
-    public APIResource getAPIResource(String endpoint) {
+    public sfcraft_MockAPIResource getAPIResource(String endpoint) {
         return this.getServerResource(endpoint).getAPIResource();
     }
 
@@ -62,82 +66,13 @@ public with sharing class sfcraft_MockServer implements HttpCalloutMock {
         return endpoint.substringBefore('?');
     }
 
-    private static void ensureDefaultValueInMap(Map<String, Object> theMap, String key, Object value) {
-        if (null == theMap.get(key)) {
-            theMap.put(key, value);
-        }
-    }
-
-    public interface MockableHttpResponse {
-        String toResponseBody();
-    }
-
-    public interface RequestAsserter {
-        void assertRequest(HttpRequest req);
-    }
-
-    public class APIResource {
-        private Map<String, Map<Integer, HttpResponse>> responseMap;
-        private List<RequestAsserter> assertions;
-
-        public APIResource () {
-            this.responseMap = new Map<String, Map<Integer, HttpResponse>>();
-            this.assertions = new List<RequestAsserter>();
-        }
-
-        public void setResponse(String method, Integer statusCode, MockableHttpResponse responseBody) {
-            this.setResponse(method, statusCode, responseBody.toResponseBody());
-        }
-
-        public void setResponse(String method, Integer statusCode, String responseBody) {
-            HttpResponse response = new HttpResponse();
-            response.setBody(responseBody);
-            response.setStatusCode(statusCode);
-            ensureDefaultValueInMap(this.responseMap, method, new Map<Integer, HttpResponse>());
-            this.responseMap.get(method).put(statusCode, response);
-        }
-
-        public void assertRequest(HttpRequest req) {
-            for (RequestAsserter assertion : this.assertions) {
-                assertion.assertRequest(req);
-            }
-        }
-
-        public void addAssertion(RequestAsserter assertion) {
-            if (null == assertion) {
-                return;
-            }
-            this.assertions.add(assertion);
-        }
-
-        public HttpResponse getResponse(String method, Integer statusCode) {
-            Map<Integer, HttpResponse> methodResponseMap = this.responseMap.get(method);
-            if (null == methodResponseMap) {
-                sfcraft_MockServerException ex = new sfcraft_MockServerException.Factory()
-                    .setMessage(sfcraft_MockServerException.MSG_NO_MOCK_FOR_METHOD)
-                    .setHttpMethod(method)
-                    .build();
-                throw ex;
-            }
-            HttpResponse result = methodResponseMap.get(statusCode);
-            if (null == result) {
-                sfcraft_MockServerException ex = new sfcraft_MockServerException.Factory()
-                    .setMessage(sfcraft_MockServerException.MSG_NO_MOCK_FOR_CODE)
-                    .setCode(statusCode)
-                    .build();
-                throw ex;
-            }
-            return result;
-        }
-    }
-
     private class ServerEndpointResource {
         private String endpoint;
-        private APIResource resource;
+        private sfcraft_MockAPIResource resource;
 
         private Map<String, Integer> responseCodeMap;
 
-        public ServerEndpointResource(String endpoint, sfcraft_MockServer.APIResource resource) {
+        public ServerEndpointResource(String endpoint, sfcraft_MockAPIResource resource) {
             this.endpoint = endpoint;
             this.resource = resource;
             this.responseCodeMap = new Map<String, Integer>();
@@ -147,7 +82,7 @@ public with sharing class sfcraft_MockServer implements HttpCalloutMock {
             return this.endpoint;
         }
 
-        public APIResource getAPIResource() {
+        public sfcraft_MockAPIResource getAPIResource() {
             return this.resource;
         }
 
@@ -159,7 +94,7 @@ public with sharing class sfcraft_MockServer implements HttpCalloutMock {
             String method = req.getMethod();
 
             try {
-                APIResource resource = this.getAPIResource();
+                sfcraft_MockAPIResource resource = this.getAPIResource();
                 resource.assertRequest(req);
 
                 Integer code = this.getResponseCode(req.getMethod());

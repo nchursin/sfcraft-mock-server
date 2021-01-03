@@ -18,7 +18,7 @@ private class sfcraft_MockServerTestUtils {
         return req;
     }
 
-    public class DemoResponse implements sfcraft_MockServer.MockableHttpResponse {
+    public class DemoResponse implements sfcraft_MockableHttpResponse {
         public String status;
         public DemoResponse(String status) {
             this.status = status;
