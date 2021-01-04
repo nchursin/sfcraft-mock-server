@@ -2,6 +2,7 @@
 @TestVisible
 private class sfcraft_MockServerTestUtils {
     public static final String ENDPOINT = 'https://example.com/testEndpoint';
+    public static final String ENDPOINT_W_TRAILING_SLASH = 'https://example.com/testEndpoint/';
     public static final String ENDPOINT2 = 'https://example.com/testEndpoint2';
     public static final String ENDPOINT_NOT_FOUND = 'https://example.com/notFoundEndpoint';
     public static final String ENDPOINT_GET_PARAMS = '?id=1234';
