@@ -8,6 +8,10 @@ public class sfcraft_MockAPIResource {
         this.assertions = new List<sfcraft_RequestAsserter>();
     }
 
+    public void setResponse(String method, Integer statusCode) {
+        this.setResponse(method, statusCode, '');
+    }
+
     public void setResponse(String method, Integer statusCode, sfcraft_MockableHttpResponse responseBody) {
         this.setResponse(method, statusCode, responseBody.toResponseBody());
     }
