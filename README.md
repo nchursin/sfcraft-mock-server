@@ -94,6 +94,18 @@ resource.setResponse(
     );
 ```
 
+You can also specify headers for responses if you have any logic based on those:
+```java
+resource.setResponse(
+        'POST',
+        200,
+        'status: ok',
+        new Map<String, String> {
+            'Content-Type' => 'plain/text'
+        }
+    );
+```
+
 ### Asserting requests
 You can validate that request is built correctly. This might be helpful to test headers, e.g. `Authorization`, `Content-Type`, etc. To preform assertiong on the request you need to implement a `sfcraft_RequestAsserter` interface. Here's a sample of an assertion that checks `Content-Type` header.
 
