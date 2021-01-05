@@ -12,14 +12,35 @@ public class sfcraft_MockAPIResource {
         this.setResponse(method, statusCode, '');
     }
 
+    public void setResponse(String method, Integer statusCode, Map<String, String> headers) {
+        this.setResponse(method, statusCode, '', headers);
+    }
+
+    public void setResponse(
+        String method,
+        Integer statusCode,
+        sfcraft_MockableHttpResponse responseBody,
+        Map<String, String> headers
+    ) {
+        this.setResponse(method, statusCode, responseBody.toResponseBody(), headers);
+    }
+    
     public void setResponse(String method, Integer statusCode, sfcraft_MockableHttpResponse responseBody) {
         this.setResponse(method, statusCode, responseBody.toResponseBody());
     }
 
     public void setResponse(String method, Integer statusCode, String responseBody) {
-        HttpResponse response = new HttpResponse();
-        response.setBody(responseBody);
-        response.setStatusCode(statusCode);
+        this.setResponse(method, statusCode, responseBody, null);
+    }
+    
+    public void setResponse(
+        String method,
+        Integer statusCode,
+        String responseBody,
+        Map<String, String> headers
+    ) {
+        HttpResponse response = this.createResponse(responseBody, statusCode, headers);
+
         ensureDefaultValueInMap(this.responseMap, method, new Map<Integer, HttpResponse>());
         this.responseMap.get(method).put(statusCode, response);
     }
@@ -55,6 +76,19 @@ public class sfcraft_MockAPIResource {
             throw ex;
         }
         return result;
+    }
+
+    private HttpResponse createResponse(String responseBody, Integer statusCode, Map<String, String> headers) {
+        HttpResponse response = new HttpResponse();
+        response.setBody(responseBody);
+        response.setStatusCode(statusCode);
+        if (null != headers) {
+            for (String header : headers.keySet()) {
+                String headerValue = headers.get(header);
+                response.setHeader(header, headerValue);
+            }
+        }
+        return response;
     }
 
     private static void ensureDefaultValueInMap(Map<String, Object> theMap, String key, Object value) {

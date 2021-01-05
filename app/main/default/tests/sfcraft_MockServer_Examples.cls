@@ -34,6 +34,44 @@ private class sfcraft_MockServer_Examples {
     }
 
     @isTest
+    private static void howToAddSuccessResponseToTheServerUsingResponseClassWithHeaders() {
+        // Create resourse. Resource is basically an endpoint on your real server
+        sfcraft_MockAPIResource resource = new sfcraft_MockAPIResource();
+        // Setting up a success response.
+        // SUCCESS_BODY is an instance of a response wrapper class
+        // SUCCESS_CODE is 200, which is default
+        resource.setResponse(
+            sfcraft_MockServerTestUtils.HTTP_METHOD,
+            sfcraft_MockServerTestUtils.SUCCESS_CODE,
+            sfcraft_MockServerTestUtils.SUCCESS_BODY,
+            new Map<String, String> {
+                'Content-Type' => 'application/json'
+            }
+        );
+        
+        // Instantiating a server
+        sfcraft_MockServer server = new sfcraft_MockServer();
+        // Setting server as mock
+        server.setAsMock();
+        // Adding resource to server
+        server.addEndpoint(sfcraft_MockServerTestUtils.ENDPOINT, resource);
+
+        HttpRequest req = sfcraft_MockServerTestUtils.getTestRequest();
+        Integer expectedCode = sfcraft_MockServerTestUtils.SUCCESS_CODE;
+        // By default server always returns 200
+        HttpResponse response = new Http().send(req);
+        System.assertEquals(expectedCode, response.getStatusCode());
+        System.assertEquals(
+            sfcraft_MockServerTestUtils.SUCCESS_BODY.toResponseBody(),
+            response.getBody()
+        );
+        System.assertEquals(
+            'application/json',
+            response.getHeader('Content-Type')
+        );
+    }
+
+    @isTest
     private static void howToAddSuccessResponseToTheServerWithNoBody() {
         // Create resourse. Resource is basically an endpoint on your real server
         sfcraft_MockAPIResource resource = new sfcraft_MockAPIResource();
@@ -59,6 +97,42 @@ private class sfcraft_MockServer_Examples {
         System.assertEquals(
             '',
             response.getBody()
+        );
+    }
+
+    @isTest
+    private static void howToAddSuccessResponseToTheServerWithNoBodyWithHeaders() {
+        // Create resourse. Resource is basically an endpoint on your real server
+        sfcraft_MockAPIResource resource = new sfcraft_MockAPIResource();
+        // Setting up a success response.
+        // SUCCESS_CODE is 200, which is default
+        resource.setResponse(
+            sfcraft_MockServerTestUtils.HTTP_METHOD,
+            sfcraft_MockServerTestUtils.SUCCESS_CODE,
+            new Map<String, String> {
+                'Content-Length' => '0'
+            }
+        );
+        
+        // Instantiating a server
+        sfcraft_MockServer server = new sfcraft_MockServer();
+        // Setting server as mock
+        server.setAsMock();
+        // Adding resource to server
+        server.addEndpoint(sfcraft_MockServerTestUtils.ENDPOINT, resource);
+
+        HttpRequest req = sfcraft_MockServerTestUtils.getTestRequest();
+        Integer expectedCode = sfcraft_MockServerTestUtils.SUCCESS_CODE;
+        // By default server always returns 200
+        HttpResponse response = new Http().send(req);
+        System.assertEquals(expectedCode, response.getStatusCode());
+        System.assertEquals(
+            '',
+            response.getBody()
+        );
+        System.assertEquals(
+            '0',
+            response.getHeader('Content-Length')
         );
     }
 
