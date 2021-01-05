@@ -5,7 +5,7 @@
        src="https://raw.githubusercontent.com/afawcett/githubsfdeploy/master/deploy.png">
 </a>
 
-Mock server is an implementation of `HttpCalloutMock` which can help you make your mocks more organized.
+Mock server is an implementation of `HttpCalloutMock` which can help you make your mocks more organized. I wrote [a post](https://salesforcecraft.medium.com/testing-http-callouts-using-sfcraft-mockserver-part-1-d2e04c7ffe4a) to compare the MockServer approach with `HttpCalloutMock` implementation. You can take a look at it to get the idea of how to use it or you can follow the docs below.
 
 ## How to use it
 
